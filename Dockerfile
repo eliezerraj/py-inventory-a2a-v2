@@ -1,4 +1,4 @@
-# docker build -t py-inventory-v2-a2a .
+# docker build -t py-inventory-a2a-v2 .
 
 FROM ghcr.io/astral-sh/uv:python3.14-bookworm-slim AS builder
 

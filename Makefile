@@ -2,7 +2,7 @@
 
 export VERSION=0.1
 export ACCOUNT=local:localhost
-export APP_NAME=py-inventory-v2-a2a
+export APP_NAME=py-inventory-a2a-v2
 export HOST=127.0.0.1
 export PORT=7601
 
@@ -19,8 +19,8 @@ export A2A_SERVER_STATISTIC_A2A_URL=http://127.0.0.1:7600
 
 export LOG_LEVEL=INFO
 export OTEL_EXPORTER_OTLP_ENDPOINT=localhost:4317
-export OTEL_STDOUT_LOG_GROUP=True
-export LOG_GROUP=/mnt/c/Eliezer/log/py-inventory-v2-a2a.log
+export OTEL_STDOUT_LOG_GROUP=False
+export LOG_GROUP=/mnt/c/Eliezer/log/py-inventory-a2a-v2.log
 
 # Default target
 all: env activate run

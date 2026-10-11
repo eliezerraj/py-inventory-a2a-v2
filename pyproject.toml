@@ -3,7 +3,7 @@ requires = ["setuptools>=61.0.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "py-inventory-v2-a2a"
+name = "py-inventory-a2a-v2"
 version = "0.1.0"
 description = "A a2a agent in charge of inventory affairs."
 dependencies = [
@@ -18,7 +18,7 @@ dependencies = [
     "opentelemetry-api",
     "opentelemetry-instrumentation-aiohttp-client",
     "opentelemetry-instrumentation-logging",
-    "opentelemetry-exporter-otlp",
+    "opentelemetry-exporter-otlp-proto-grpc",
     "aiohttp",
     "prometheus-client",
 ]
