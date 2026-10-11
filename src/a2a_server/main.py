@@ -9,6 +9,16 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
 
+from fastapi.responses import Response
+from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
+from src.a2a_server.infrastructure.telemetry.metric import (
+    HTTP_REQUESTS_TOTAL,
+    HTTP_REQUEST_DURATION_SECONDS,
+    A2A_MESSAGES_TOTAL,
+    A2A_ROUTER_ERRORS_TOTAL,
+    IN_FLIGHT_REQUESTS
+)
+
 from src.a2a_server.a2a.message_model import A2ARequest, A2AEnvelope, A2AResponse
 from src.a2a_server.a2a.server import A2AServer
 from src.a2a_server.application.orchestration.orchestrator import Orchestrator
@@ -72,6 +82,13 @@ a2AServer = A2AServer(settings, orchestrator)
 # ---------------------------------
 # API Endpoints
 # ---------------------------------
+@app.get("/metrics")
+def metrics():
+    return Response(
+        content=generate_latest(),
+        media_type=CONTENT_TYPE_LATEST
+    )
+
 @app.get("/v1/info")
 def get_info():
     with tracer.start_as_current_span("controller.get_info"):
@@ -90,13 +107,18 @@ def agent_card():
 
 @app.post("/a2a/message")
 async def a2a_message(a2aRequest: A2ARequest, request: Request) -> A2AResponse:
-    with tracer.start_as_current_span("controller.a2a_message") as span:
+    with tracer.start_as_current_span("main.a2a_message") as span:
         """Handle incoming A2A messages."""
         logger.info("func.a2a_message()")
-          
+        
+        start = time.time()
+        IN_FLIGHT_REQUESTS.inc() 
+                  
         try:
             request_envelope: A2AEnvelope = a2aRequest.parse_domain_envelope()
             
+            A2A_MESSAGES_TOTAL.labels(message_type=request_envelope.message_type).inc()   
+                        
             response = await a2AServer.router(request_envelope)
             
             response_envelope: A2AResponse = A2AResponse.create(domain_envelope=response, a2aRequest=a2aRequest)
@@ -105,6 +127,8 @@ async def a2a_message(a2aRequest: A2ARequest, request: Request) -> A2AResponse:
             return response_envelope
         
         except A2ARouterError as e:
+            A2A_ROUTER_ERRORS_TOTAL.inc()
+                        
             span.record_exception(e)
             span.set_status(Status(StatusCode.ERROR, str(e)))
             logger.error("Error A2ARouterError message", exc_info=e)
@@ -128,6 +152,10 @@ async def a2a_message(a2aRequest: A2ARequest, request: Request) -> A2AResponse:
             span.set_status(Status(StatusCode.ERROR, str(e)))
             logger.error("Error uncaugth Exception", exc_info=e)
             raise e
+        
+        finally:
+            HTTP_REQUEST_DURATION_SECONDS.labels(method="POST",endpoint="/a2a/message").observe(time.time() - start)
+            IN_FLIGHT_REQUESTS.dec()
 
 # Server entrypoint function
 def run():

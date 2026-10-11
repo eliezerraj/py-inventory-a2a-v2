@@ -1,9 +1,12 @@
 import logging
 import json
 import os
+
 from contextvars import ContextVar
 from datetime import datetime, timezone
 from logging.handlers import RotatingFileHandler
+
+from src.a2a_server.config.settings import settings
 
 REQUEST_ID_CTX = ContextVar("x-request-id", default="not-informed")
 
@@ -22,6 +25,7 @@ class JsonFormatter(logging.Formatter):
         log_entry = {
             "level": record.levelname.lower(),
             "time": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "app_name": settings.APP_NAME,
             "x-request-id":  REQUEST_ID_CTX.get(),
             "component": record.name,
             "message": message,

@@ -6,9 +6,12 @@ export APP_NAME=py-inventory-v2-a2a
 export HOST=127.0.0.1
 export PORT=7601
 
+export LIMIT=7 
+export SCALE_CHOICE=MEDIUM
+export ANCHOR_CHOICE=BALANCED
+
 export URL_AGENT=http://127.0.0.1:7601
 export SESSION_TIMEOUT=700
-export VALIDATE_CONTEXT=false
 
 export MCP_SERVER_INVENTORY_URL=http://127.0.0.1:7500/mcp
 export MCP_SERVER_ORDER_URL=http://127.0.0.1:7501/mcp

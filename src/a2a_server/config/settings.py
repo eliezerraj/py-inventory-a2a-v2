@@ -7,6 +7,11 @@ class Settings:
         self.APP_NAME = os.getenv("APP_NAME")
         self.HOST = os.getenv("HOST")
         self.PORT = os.getenv("PORT")
+        
+        self.LIMIT = int(os.getenv("LIMIT"))
+        self.SCALE_CHOICE = os.getenv("SCALE_CHOICE")
+        self.ANCHOR_CHOICE = os.getenv("ANCHOR_CHOICE")
+        
         self.MCP_SERVER_INVENTORY_URL = os.getenv("MCP_SERVER_INVENTORY_URL")
         self.MCP_SERVER_ORDER_URL = os.getenv("MCP_SERVER_ORDER_URL")
         self.A2A_SERVER_STATISTIC_A2A_URL = os.getenv("A2A_SERVER_STATISTIC_A2A_URL")

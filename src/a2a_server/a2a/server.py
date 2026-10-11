@@ -29,7 +29,8 @@ class A2AServer:
     def __init__(self, settings, orchestrator):
         self.settings = settings
         self.orchestrator = orchestrator
-        logger.info("A2AServer initialized.")
+        
+        logger.info("A2AServer initialized SUCCESSFULLY")
     
     async def router(self, envelope):
         with tracer.start_as_current_span("a2a.server.router") as span:
@@ -81,18 +82,26 @@ class A2AServer:
                     return response
                                                 
                 # Workflow: Inventory Observation
-                elif envelope.message_type == "inventory.monitor.observer":
-                    logger.info("Handling inventory.monitor.observer message type.")
+                elif envelope.message_type == "inventory.monitor.observe":
+                    logger.info("Handling inventory.monitor.observe message type.")
                     
                     response = await self.orchestrator.observe(envelope.payload)
                                         
                     return response
-                                
+
+                # Workflow: Inventory Observation
+                elif envelope.message_type == "inventory.monitor.device":
+                    logger.info("Handling inventory.monitor.decide message type.")
+                    
+                    response = await self.orchestrator.reasoning(envelope.payload)
+                                        
+                    return response
+                                                
                 # Workflow: Inventory Monitoring
                 elif envelope.message_type == "inventory.monitor":
                     logger.info("Handling inventory.monitor message type.")
                     
-                    response = await self.orchestrator.monitor(envelope.payload["product"])
+                    response = await self.orchestrator.monitor(envelope.payload)
                     
                     return response
                 

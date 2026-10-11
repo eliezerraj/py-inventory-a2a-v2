@@ -56,7 +56,7 @@ class HttpAdapter:
         # Inject OpenTelemetry trace context propagation into outgoing headers
         propagate.inject(merged_headers)
 
-        span_name = f"HTTP {method}"
+        span_name = f"adapter.request HTTP {method} {url}"
         with tracer.start_as_current_span(span_name) as span:
             span.set_attribute("http.method", method)
             span.set_attribute("http.url", url)

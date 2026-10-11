@@ -6,6 +6,7 @@ from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from opentelemetry.sdk.metrics import MeterProvider
 from opentelemetry.instrumentation.aiohttp_client import AioHttpClientInstrumentor
 from opentelemetry.instrumentation.logging import LoggingInstrumentor
+from src.a2a_server.infrastructure.middleware.middleware import FilteringSpanExporter
 
 def setup_tracer(APP_NAME: str,
                  OTEL_EXPORTER_OTLP_ENDPOINT: str) -> None:
@@ -24,8 +25,11 @@ def setup_tracer(APP_NAME: str,
         insecure=True
     )
 
-    # Add processor
-    trace_provider.add_span_processor(BatchSpanProcessor(otlp_exporter))
+    # Wrap the exporter with our filtering exporter
+    filtering_exporter = FilteringSpanExporter(otlp_exporter)
+
+    # Add processor with filtered exporter
+    trace_provider.add_span_processor(BatchSpanProcessor(filtering_exporter))
 
     # Optional: metrics (disabled if not needed)
     metrics.set_meter_provider(MeterProvider(resource=resource))
@@ -36,3 +40,4 @@ def setup_tracer(APP_NAME: str,
 
     # create trace
     tracer = trace.get_tracer(APP_NAME)
+    return tracer

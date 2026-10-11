@@ -14,4 +14,11 @@ dependencies = [
     "numpy",
     "mcp",
     "google-adk[a2a]",
+    "opentelemetry-sdk",
+    "opentelemetry-api",
+    "opentelemetry-instrumentation-aiohttp-client",
+    "opentelemetry-instrumentation-logging",
+    "opentelemetry-exporter-otlp",
+    "aiohttp",
+    "prometheus-client",
 ]
