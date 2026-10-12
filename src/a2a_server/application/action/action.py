@@ -2,7 +2,6 @@ import logging
 import json
 import numpy as np
 
-from pathlib import Path
 from opentelemetry import trace
 
 from src.a2a_server.infrastructure.repository.inventory_repository import InventoryRepository
