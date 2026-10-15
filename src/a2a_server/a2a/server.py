@@ -1,7 +1,17 @@
 import logging
 import json
 
-from src.a2a_server.a2a.exception import A2ARequestError, A2ARouterError
+from src.a2a_server.domain.usecase.calculation import compute_statistics, Statistic
+from src.a2a_server.infrastructure.auth.cedar_verifier import CedarVerifier
+
+from src.a2a_server.common.exceptions.auth_error import (
+    InvalidAccessTokenError,
+    AuthorizationDeniedError,
+)
+from src.a2a_server.common.exceptions.a2a_error import (
+    A2ARequestError,
+    A2ARouterError,
+)
 
 from opentelemetry.trace.status import Status, StatusCode
 from opentelemetry import trace
@@ -28,7 +38,9 @@ class A2AServer:
     
     def __init__(self, settings, orchestrator):
         self.settings = settings
+        
         self.orchestrator = orchestrator
+        self.cedar_verifier = CedarVerifier()
         
         logger.info("A2AServer initialized SUCCESSFULLY")
     
@@ -38,63 +50,43 @@ class A2AServer:
             
             try:
                 # Skill: Inventory Management
-                if envelope.message_type == "inventory.product.check":
-                    logger.info("Handling inventory.product.check message type.")
-                    
-                    response = {"message": "check ok" }
-                                        
-                    return response
-                
-                # Skill: Inventory Agent Status
-                elif envelope.message_type == "inventory.product.change.price":
-                    logger.info("Handling inventory.product.change.price message type.")
-                    
-                    response = {"message": "pricing ok",
-                            }
-                    
-                    return response
-                
-                # Skill: Inventory Agent Status
-                elif envelope.message_type == "inventory.analyze.stock.coverage":
-                    logger.info("Handling inventory.analyze.stock.coverage message type.")
-                    
-                    response = {"message": "analysis ok",
-                            }
-                    
-                    return response
-                
-                # Skill: Inventory Agent Status Information
-                elif envelope.message_type == "inventory.agent.status":
+                if envelope.message_type == "inventory.agent.status":
                     logger.info("Handling inventory.agent.status message type.")
                     
                     response = {"message": "agent status ok",
                                 "data": json.dumps(self.settings.dict() if hasattr(self.settings, "dict") else self.settings.__dict__),
                             }
-                    
                     return response
 
                 # Workflow: Inventory Observation
                 elif envelope.message_type == "inventory.monitor.state":
                     logger.info("Handling inventory.monitor.state message type.")
                     
-                    response = await self.orchestrator.state(envelope.payload)
-                                        
+                    response = await self.orchestrator.state(envelope.payload)        
                     return response
                                                 
                 # Workflow: Inventory Observation
                 elif envelope.message_type == "inventory.monitor.observe":
                     logger.info("Handling inventory.monitor.observe message type.")
                     
+                    if self.settings.AUTHORIZATION_DRY_RUN:
+                        logger.info("Authorization dry run enabled, skipping Cedar verification.")
+                    else:
+                        self.cedar_verifier.validate(
+                            action="send_message",
+                            resource_type="MessageType",
+                            resource_id=envelope.message_type,
+                            resource_attrs={"data": envelope.payload},
+                        )
+                                            
                     response = await self.orchestrator.observe(envelope.payload)
-                                        
                     return response
 
                 # Workflow: Inventory Observation
                 elif envelope.message_type == "inventory.monitor.device":
-                    logger.info("Handling inventory.monitor.decide message type.")
+                    logger.info("Handling inventory.monitor.device message type.")
                     
-                    response = await self.orchestrator.reasoning(envelope.payload)
-                                        
+                    response = await self.orchestrator.reasoning(envelope.payload)     
                     return response
                                                 
                 # Workflow: Inventory Monitoring
@@ -102,7 +94,6 @@ class A2AServer:
                     logger.info("Handling inventory.monitor message type.")
                     
                     response = await self.orchestrator.monitor(envelope.payload)
-                    
                     return response
                 
                 else:
@@ -115,7 +106,7 @@ class A2AServer:
                 span.set_status(Status(StatusCode.ERROR, str(e)))
                 logger.error("Error A2ARouterError message", exc_info=e)
                 raise e
-            
+
             except Exception as e:
                 span.record_exception(e)
                 span.set_status(Status(StatusCode.ERROR, str(e)))

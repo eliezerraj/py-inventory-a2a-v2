@@ -2,7 +2,7 @@ from src.a2a_server.config.settings import settings
 
 AGENT_CARD = {
   "name": settings.APP_NAME,
-  "description": "Statistical inference agent (windowed data analysis)",
+  "description": "Inventory agent handles inventory management and optimization tasks, providing real-time insights and recommendations to ensure efficient stock levels and reduce costs.",
   "url": f"{settings.URL_AGENT}/a2a/message",
   "version": settings.VERSION,
   "provider": {
@@ -46,32 +46,63 @@ AGENT_CARD = {
         "inputModes": ["application/json"]
     },
     {
-      "id": "statistics.compute",
-      "name": "Compute Statistics",
-      "description": "Computes descriptive statistics and trend metrics from an input numeric array.",
-      "tags": ["statistics","analytics","timeseries"],
+      "id": "inventory.monitor.observe",
+      "name": "Inventory Monitor Observe",
+      "description": "Observes inventory state changes and provides relevant insights.",
+      "tags": ["inventory","monitoring","observation"],
       "additionalProperties": False,
       "inputSchema": {
         "type": "object",
-        "title": "StatisticsComputeRequest",
+        "title": "InventoryMonitorObserveRequest",
         "properties": {
-          "data": {
-            "type": "array",
-            "description":"Array of numeric values to analyze.",
-            "items": {
-              "type": "number",
-              "description": "Numeric value for analysis"
-            }
+          "product": {
+            "type": "object",
+            "description":"A product inventory state for observation.",
+            "properties": {
+              "sku": {
+                "type": "string",
+                "description": "Unique sku identifier of the product."
+              }
+            },
+            "required": ["sku"]
           }
         },
-        "required": ["data"]
+        "required": ["product"]
       },
       "examples": [
-        "Show statistics agent status.",
-        "Get statistics agent version.",
-        "Provide the information and health of the statistics agent.",
-        "Calculate the mean, median, and standard deviation of the input data.",
-        "Analyze the trend of the input data and provide insights.",
+        "Observe inventory state changes for sku-70.",
+        "Get insights on inventory changes for product sku-70.",
+      ],
+      "inputModes": ["application/json"],
+      "outputModes": ["application/json"]
+    },
+    {
+      "id": "inventory.monitor",
+      "name": "Inventory Monitor",
+      "description": "Monitors inventory state and provides relevant insights.",
+      "tags": ["inventory","monitoring","observation"],
+      "additionalProperties": False,
+      "inputSchema": {
+        "type": "object",
+        "title": "InventoryMonitorRequest",
+        "properties": {
+          "product": {
+            "type": "object",
+            "description":"A product inventory state for monitoring.",
+            "properties": {
+              "sku": {
+                "type": "string",
+                "description": "Unique sku identifier of the product."
+              }
+            },
+            "required": ["sku"]
+          }
+        },
+        "required": ["product"]
+      },
+      "examples": [
+        "Monitor inventory state changes for product sku-70.",
+        "Get insights on inventory monitoring for sku-70.",
       ],
       "inputModes": ["application/json"],
       "outputModes": ["application/json"]

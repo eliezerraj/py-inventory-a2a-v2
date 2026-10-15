@@ -21,4 +21,6 @@ dependencies = [
     "opentelemetry-exporter-otlp-proto-grpc",
     "aiohttp",
     "prometheus-client",
+    "cedarpy",
+    "PyJWT[crypto]",
 ]
