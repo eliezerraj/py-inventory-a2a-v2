@@ -5,3 +5,6 @@ class InvalidAccessTokenError(AppError):
 
 class AuthorizationDeniedError(AppError):
     pass
+
+class MissingTokenError(AppError):
+    pass

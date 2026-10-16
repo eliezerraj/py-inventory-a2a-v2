@@ -18,11 +18,11 @@ from src.a2a_server.infrastructure.context.request_context import (
     set_security_context,
     reset_security_context,
 )
-
 from src.a2a_server.infrastructure.auth.token_verifier import JwtTokenVerifier
 
 from src.a2a_server.common.exceptions.auth_error import (
     InvalidAccessTokenError,
+    MissingTokenError,
 )
 
 #---------------------------------
@@ -31,8 +31,53 @@ from src.a2a_server.common.exceptions.auth_error import (
 tracer = trace.get_tracer(__name__)
 logger = logging.getLogger(__name__)
 
-TRACING_EXCLUDED_PATHS = ["/metrics", "/health", "/readiness"]
+TRACING_EXCLUDED_PATHS = ["/metrics", "/health"]
 AUTHORIZATION_EXCLUDED_PATHS = ["/metrics", "/health", "/v1/info", "/.well-known/agent-card.json"]
+
+#---------------------------------
+# Exception handler utility
+#---------------------------------
+def handle_auth_exception(exception: Exception, span, request_id: str, log_level: str = "warning") -> JSONResponse:
+    """
+    Unified exception handler for authentication errors.
+    
+    Args:
+        exception: The exception to handle (custom or generic)
+        span: OpenTelemetry span for setting attributes
+        request_id: Request ID for correlation
+        log_level: Log level to use ("warning" or "error")
+    
+    Returns:
+        JSONResponse with appropriate error response and status code
+    """
+    # Determine status code and error response
+    status_code = 401
+    if hasattr(exception, 'status_code') and exception.status_code:
+        status_code = exception.status_code
+    
+    # Get error message based on exception type
+    if hasattr(exception, 'message'):
+        log_msg = f"{type(exception).__name__}: {exception.message}"
+        error_response = exception.to_dict() if hasattr(exception, 'to_dict') else {"error": exception.message}
+    else:
+        log_msg = f"Unexpected error during token verification: {str(exception)}"
+        error_response = {"error": "Unexpected error", "message": str(exception)}
+    
+    # Log the error
+    if log_level == "error":
+        logger.error(log_msg)
+    else:
+        logger.warning(log_msg)
+    
+    # Set span attributes
+    span.set_attribute("error.type", type(exception).__name__)
+    span.set_attribute("http.status_code", status_code)
+    
+    return JSONResponse(
+        status_code=status_code,
+        content=error_response,
+        headers={"x-request-id": request_id}
+    )
 
 class FilteringSpanExporter(SpanExporter):
     """Filters out spans from excluded paths before export"""
@@ -72,17 +117,16 @@ class FilteringSpanExporter(SpanExporter):
     
 class RequestContextMiddleware(BaseHTTPMiddleware):
     
+    # Initialize the middleware with the application and token verifier
     def __init__(self, app):
         super().__init__(app)
-        
         self._token_verifier = JwtTokenVerifier(
             issuer=settings.AUTHORIZATION_ISSUER,
             audience=settings.AUTHORIZATION_AUDIENCE,
             jwks_url=settings.AUTHORIZATION_JWKS_URL,
         )
-                
         logger.info("Initializing Middleware SUCCESSFULLY")
-        
+
     # Process each incoming request through the middleware
     async def dispatch(self, request: Request, call_next):
         
@@ -139,31 +183,11 @@ class RequestContextMiddleware(BaseHTTPMiddleware):
                     )
                     
                 except InvalidAccessTokenError as e:
-                    logger.error(f"Invalid access token error: {e.message}")
-                    span.set_attribute("error.type", e.error_type)
-                    span.set_attribute("http.status_code", e.status_code or 401)
-                    
-                    # Return 401 Unauthorized response using exception's to_dict()
-                    error_response = e.to_dict()
-                    
-                    return JSONResponse(
-                        status_code=e.status_code or 401,
-                        content=error_response,
-                        headers={"x-request-id": request_id}
-                    )
+                    return handle_auth_exception(e, span, request_id, log_level="warning")
+                except MissingTokenError as e:
+                    return handle_auth_exception(e, span, request_id, log_level="warning")
                 except Exception as e:
-                    logger.error(f"Unexpected error during token verification: {str(e)}")
-                    span.set_attribute("error.type", type(e).__name__)
-                    span.set_attribute("http.status_code", 401)
-                    
-                    # Return 401 Unauthorized response for unexpected errors
-                    error_response = e.to_dict()
-  
-                    return JSONResponse(
-                        status_code=401,
-                        content=error_response,
-                        headers={"x-request-id": request_id}
-                    )
+                    return handle_auth_exception(e, span, request_id, log_level="error")
             else:
                 logger.info("Authentication dry run enabled, skipping token verification")
                 # Create basic SecurityContext for dry run

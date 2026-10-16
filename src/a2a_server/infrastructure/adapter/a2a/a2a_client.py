@@ -17,6 +17,11 @@ from src.a2a_server.config.settings import settings
 from typing import Any
 from dataclasses import dataclass
 
+from src.a2a_server.domain.dto.context import SecurityContext
+from src.a2a_server.infrastructure.context.request_context import (
+    get_security_context,
+)
+
 tracer = trace.get_tracer(__name__)
 logger = logging.getLogger(__name__)
 
@@ -33,10 +38,17 @@ class A2aAdapter:
 
     async def call(self, request: A2aRequest) -> Any:
         with tracer.start_as_current_span("a2a.client.call") as span:
+            
+            security = get_security_context()
+            headers = {
+                    "Authorization": f"Bearer {security.auth_token}",
+                    "X-Request-ID": security.x_request_id
+            }
+                    
             span.set_attribute("a2a.endpoint",request.endpoint)
-
-            async with httpx.AsyncClient() as httpx_client:
+            async with httpx.AsyncClient(headers=headers) as httpx_client:
                 logger.info("Preparing to call A2A agent at endpoint: %s with skill: %s", request.endpoint, request.skill)
+                
                 try:
                     resolver = A2ACardResolver(
                         httpx_client=httpx_client,

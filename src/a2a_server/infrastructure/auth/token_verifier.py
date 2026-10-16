@@ -14,6 +14,7 @@ from src.a2a_server.domain.dto.model import VerifiedIdentity
 
 from src.a2a_server.common.exceptions.auth_error import (
     InvalidAccessTokenError,
+    MissingTokenError,
 )
 
 #---------------------------------
@@ -45,14 +46,12 @@ class JwtTokenVerifier:
         with tracer.start_as_current_span("jwt.verify_token") as span:
             try:
                 if not token:
-                    logger.warning(f"Missing token")
-                    raise InvalidAccessTokenError(status_code=401, error="UNAUTHORIZED", error_type="InvalidAccessTokenError", message="Missing token")
+                    raise MissingTokenError(status_code=401, error="UNAUTHORIZED", error_type="MissingTokenError", message="Missing token")
 
                 claims = await self._verify_signature_and_claims(token)
                 subject = claims.get("sub")
 
                 if not isinstance(subject, str) or not subject:
-                    logger.warning(f"Missing subject claim in token")
                     raise InvalidAccessTokenError(status_code=401, error="UNAUTHORIZED", error_type="InvalidAccessTokenError", message="Missing subject claim")
 
                 roles = self._extract_roles(claims)
@@ -65,15 +64,23 @@ class JwtTokenVerifier:
                     claims=claims,
                 )
                 
+            except jwt.InvalidTokenError as e:
+                logger.warning(f"JWT verification failed: {str(e)}")
+                raise InvalidAccessTokenError(status_code=401, error="UNAUTHORIZED", error_type="InvalidAccessTokenError", message=f"JWT verification failed: {str(e)}")
             except InvalidAccessTokenError as e:
-                logger.error(f"Invalid access token: {e}")
-                raise
+                logger.warning(f"Invalid access token encountered")
+                raise e
+            except MissingTokenError as e:
+                logger.warning(f"Missing token encountered")
+                raise e
+            except jwt.PyJWKClientError as e:
+                logger.error(f"JWT JWK client error: {str(e)}")
+                raise InvalidAccessTokenError(status_code=401, error="UNAUTHORIZED", error_type="InvalidAccessTokenError", message=f"JWK client error: {str(e)}")
             except Exception as e:
-                logger.error(f"Unexpected error during token verification: {e}")
-                raise InvalidAccessTokenError(status_code=401, error="UNAUTHORIZED", error_type="InvalidAccessTokenError", message=f"Unexpected error: {e}")
+                logger.error(f"Unexpected error during token verification: {str(e)}")
+                raise InvalidAccessTokenError(status_code=401, error="UNAUTHORIZED", error_type="InvalidAccessTokenError", message=f"Token verification failed: {str(e)}")
 
     async def _verify_signature_and_claims(self, token: str) -> dict[str, Any]:
-        """Verify JWT signature and validate standard claims (iss, aud, exp)."""
         try:
             signing_key = await asyncio.to_thread(self.jwks_client.get_signing_key_from_jwt, token, )
             
@@ -90,17 +97,13 @@ class JwtTokenVerifier:
             )
             return claims
         except jwt.InvalidTokenError as e:
-            logger.error(f"JWT verification failed: {str(e)}")
-            raise InvalidAccessTokenError(status_code=401, error="UNAUTHORIZED", error_type="InvalidAccessTokenError", message=f"JWT verification failed: {str(e)}")
-        except InvalidAccessTokenError:
-            logger.error(f"Invalid access token encountered")
-            raise InvalidAccessTokenError(status_code=401, error="UNAUTHORIZED", error_type="InvalidAccessTokenError", message="Invalid access token encountered")
+            raise e
+        except InvalidAccessTokenError as e:
+            raise e
         except jwt.PyJWKClientError as e:
-            logger.error(f"JWT JWK client error: {str(e)}")
-            raise InvalidAccessTokenError(status_code=401, error="UNAUTHORIZED", error_type="InvalidAccessTokenError", message=f"JWK client error: {str(e)}")
+            raise e
         except Exception as e:
-            logger.error(f"Unexpected error during token verification: {str(e)}")
-            raise InvalidAccessTokenError(status_code=401, error="UNAUTHORIZED", error_type="InvalidAccessTokenError", message=f"Token verification failed: {str(e)}")
+            raise e
 
     @staticmethod
     def _extract_roles(claims: dict[str, Any]) -> set[str]:
