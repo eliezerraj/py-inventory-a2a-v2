@@ -19,6 +19,14 @@ class Settings:
         self.URL_AGENT = os.getenv("URL_AGENT")
         self.SESSION_TIMEOUT = int(os.getenv("SESSION_TIMEOUT"))
    
+        self.AUTHORIZATION_DRY_RUN = os.getenv("AUTHORIZATION_DRY_RUN", "true").lower() == "true"
+        self.AUTHORIZATION_JWKS_URL = os.getenv("AUTHORIZATION_JWKS_URL")
+        self.AUTHORIZATION_ISSUER = os.getenv("AUTHORIZATION_ISSUER")
+        self.AUTHORIZATION_AUDIENCE = os.getenv("AUTHORIZATION_AUDIENCE")
+        
+        self.METRICS_HOST = os.getenv("HOST")
+        self.METRICS_PORT = int(os.getenv("METRICS_PORT", 8600))
+        
         self.LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
         self.OTEL_EXPORTER_OTLP_ENDPOINT = os.getenv("OTEL_EXPORTER_OTLP_ENDPOINT")
         self.OTEL_STDOUT_LOG_GROUP = os.getenv("OTEL_STDOUT_LOG_GROUP", "false").lower() == "true"

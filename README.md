@@ -1,5 +1,5 @@
-# py-inventory-v2-a2a
-py-inventory-v2-a2a
+# py-inventory-a2a-v2
+py-inventory-a2a-v2
 
 
 ### Todo

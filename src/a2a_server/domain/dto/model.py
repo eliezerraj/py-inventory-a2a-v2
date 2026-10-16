@@ -1,5 +1,7 @@
 from typing import Optional
 from pydantic import BaseModel
+from dataclasses import dataclass
+from typing import Any
 
 class Trajectory(BaseModel):
     timestamp: str = None
@@ -53,3 +55,10 @@ class AgentGoal(BaseModel):
     objective: str = None
     action: str = None
     parameters: dict = None
+    
+@dataclass(frozen=True, slots=True)
+class VerifiedIdentity:
+    subject: str
+    roles: frozenset[str]
+    scopes: frozenset[str]
+    claims: dict[str, Any]    
