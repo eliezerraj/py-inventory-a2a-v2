@@ -14,16 +14,19 @@ from prometheus_client import start_http_server
 from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
 
 from src.a2a_server.infrastructure.telemetry.metric import (
-    HTTP_REQUESTS_TOTAL,
     HTTP_REQUEST_DURATION_SECONDS,
     A2A_MESSAGES_TOTAL,
     A2A_ROUTER_ERRORS_TOTAL,
-    IN_FLIGHT_REQUESTS
+    A2A_REQUEST_ERRORS_TOTAL,
+    A2A_UNCAUGHT_EXCEPTIONS_TOTAL,
+    IN_FLIGHT_REQUESTS,
 )
 
 from src.a2a_server.common.exceptions.auth_error import (
     InvalidAccessTokenError,
     AuthorizationDeniedError,
+    ForbiddenError,
+    MissingTokenError,
 )
 
 from src.a2a_server.common.exceptions.a2a_error import (
@@ -37,6 +40,7 @@ from src.a2a_server.application.orchestration.orchestrator import Orchestrator
 from src.a2a_server.infrastructure.telemetry.tracer import setup_tracer
 from src.a2a_server.a2a.agent_card import AGENT_CARD as agent
 from src.a2a_server.infrastructure.middleware.middleware import RequestContextMiddleware
+from src.a2a_server.config.logger import REQUEST_ID_CTX
 
 from opentelemetry import trace
 from opentelemetry.trace.status import Status, StatusCode
@@ -111,10 +115,10 @@ async def invalid_access_token_exception_handler(request: Request, exc: InvalidA
     request_id = REQUEST_ID_CTX.get() or request.headers.get("x-request-id", "unknown")
     logger.error(f"Invalid access token error: {exc.message}")
     
-    error_response = exc.to_dict()
+    error_response = create_error_response(exc, status_code=401)
     
     return JSONResponse(
-        status_code=exc.status_code or 401,
+        status_code=401,
         content=error_response,
         headers={"x-request-id": request_id}
     )
@@ -125,10 +129,52 @@ async def authorization_denied_exception_handler(request: Request, exc: Authoriz
     request_id = REQUEST_ID_CTX.get() or request.headers.get("x-request-id", "unknown")
     logger.error(f"Authorization denied: {exc.message}")
     
-    error_response = exc.to_dict()
+    error_response = create_error_response(exc, status_code=403)
     
     return JSONResponse(
-        status_code=exc.status_code or 403,
+        status_code=403,
+        content=error_response,
+        headers={"x-request-id": request_id}
+    )
+
+@app.exception_handler(ForbiddenError)
+async def forbidden_exception_handler(request: Request, exc: ForbiddenError):
+    """Handle forbidden exceptions with standardized 403 response"""
+    request_id = REQUEST_ID_CTX.get() or request.headers.get("x-request-id", "unknown")
+    logger.error(f"Forbidden error: {exc.message}")
+    
+    error_response = create_error_response(exc, status_code=403)
+    
+    return JSONResponse(
+        status_code=403,
+        content=error_response,
+        headers={"x-request-id": request_id}
+    )
+
+@app.exception_handler(MissingTokenError)
+async def missing_token_exception_handler(request: Request, exc: MissingTokenError):
+    """Handle missing token exceptions with standardized 401 response"""
+    request_id = REQUEST_ID_CTX.get() or request.headers.get("x-request-id", "unknown")
+    logger.error(f"Missing token error: {exc.message}")
+    
+    error_response = create_error_response(exc, status_code=401)
+    
+    return JSONResponse(
+        status_code=401,
+        content=error_response,
+        headers={"x-request-id": request_id}
+    )
+
+@app.exception_handler(A2ARouterError)
+async def a2a_router_error_exception_handler(request: Request, exc: A2ARouterError):
+    """Handle A2A router exceptions with standardized error response"""
+    request_id = REQUEST_ID_CTX.get() or request.headers.get("x-request-id", "unknown")
+    logger.error(f"A2A Router error: {exc.message if hasattr(exc, 'message') else str(exc)}")
+    
+    error_response = create_error_response(exc, status_code=400)
+    
+    return JSONResponse(
+        status_code=400,
         content=error_response,
         headers={"x-request-id": request_id}
     )
@@ -136,34 +182,39 @@ async def authorization_denied_exception_handler(request: Request, exc: Authoriz
 # ---------------------------------
 # Helper Functions
 # ---------------------------------
-def create_a2a_error_response(
-    exception: Exception,
-    error_type: str,
-    request_envelope: A2AEnvelope,
-    a2aRequest: A2ARequest,
-    span: trace.Span
-) -> A2AResponse:
-    """Create a standardized A2A error response envelope.
+def create_error_response(exception: Exception, status_code: int = None) -> dict:
+    """Create a standardized error response payload.
     
     Args:
         exception: The exception that occurred
-        error_type: String identifier for the error type (e.g., 'A2ARouterError', 'Exception')
-        request_envelope: The original A2A request envelope to extract target_agent
-        a2aRequest: The original A2A request object
+        status_code: HTTP status code for the response
         
     Returns:
-        A2AResponse: Formatted error response ready to return to client
+        dict: Standardized error response with error, error_type, status_code, and message
     """
-    span.record_exception(exception)
-    span.set_status(Status(StatusCode.ERROR, str(exception)))
-            
-    error_envelope = A2AEnvelope(
-        source_agent="a2a-server",
-        target_agent=request_envelope.source_agent,
-        message_type="error",
-        payload={"error": str(exception), "error_type": error_type}
-    )
-    return A2AResponse.create(domain_envelope=error_envelope, a2aRequest=a2aRequest)
+    error_type = exception.__class__.__name__
+    
+    # Map error types to user-friendly error messages
+    error_mapping = {
+        "InvalidAccessTokenError": "UNAUTHORIZED",
+        "MissingTokenError": "UNAUTHORIZED",
+        "AuthorizationDeniedError": "FORBIDDEN",
+        "ForbiddenError": "FORBIDDEN",
+    }
+    
+    error_label = error_mapping.get(error_type, "INTERNAL_SERVER_ERROR")
+    
+    # Use exception's status_code if available, otherwise use provided one
+    final_status_code = status_code
+    if hasattr(exception, 'status_code') and exception.status_code:
+        final_status_code = exception.status_code
+    
+    return {
+        "error": error_label,
+        "error_type": error_type,
+        "status_code": final_status_code,
+        "message": exception.message if hasattr(exception, 'message') else str(exception)
+    }
 
 # ---------------------------------
 # Application Metadata
@@ -216,18 +267,34 @@ async def a2a_message(a2aRequest: A2ARequest, request: Request) -> A2AResponse:
             span.set_status(Status(StatusCode.OK)) 
             return response_envelope
         
+        except ForbiddenError as e:
+            span.record_exception(e)
+            span.set_status(Status(StatusCode.ERROR, str(e)))
+            logger.warning("Forbidden error in main.a2a_message", exc_info=e)
+            raise e
+        
         except A2ARouterError as e:
-            logger.error("Error A2ARouterError message", exc_info=e)
             A2A_ROUTER_ERRORS_TOTAL.inc()
-            return create_a2a_error_response(e, "A2ARouterError", request_envelope, a2aRequest, span)
+            
+            span.record_exception(e)
+            span.set_status(Status(StatusCode.ERROR, str(e)))
+            logger.error("Error A2ARouterError message", exc_info=e)
+            
+            return create_a2a_error_response(e, "A2ARouterError", request_envelope, a2aRequest)
         
         except A2ARequestError as e:
+            A2A_REQUEST_ERRORS_TOTAL.inc()
+            span.record_exception(e)
+            span.set_status(Status(StatusCode.ERROR, str(e)))
             logger.error("Error A2ARequestError message", exc_info=e)
-            return create_a2a_error_response(e, "Exception", request_envelope, a2aRequest, span)
+            raise e
         
         except Exception as e:
+            A2A_UNCAUGHT_EXCEPTIONS_TOTAL.inc()
+            span.record_exception(e)
+            span.set_status(Status(StatusCode.ERROR, str(e)))
             logger.error("Error uncaught Exception", exc_info=e)
-            return create_a2a_error_response(e, "Exception", request_envelope, a2aRequest, span)
+            raise e
         
         finally:
             HTTP_REQUEST_DURATION_SECONDS.labels(method="POST",endpoint="/a2a/message").observe(time.time() - start)

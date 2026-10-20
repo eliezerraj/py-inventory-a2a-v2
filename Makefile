@@ -18,6 +18,9 @@ export AUTHORIZATION_JWKS_URL=http://localhost:7100/v1/.well-known/jwks.json
 export AUTHORIZATION_ISSUER=go-authorizer-v2
 export AUTHORIZATION_AUDIENCE=go-ecommerce
 
+export METRICS_HOST=0.0.0.0
+export METRICS_PORT=8601
+
 export MCP_SERVER_INVENTORY_URL=http://127.0.0.1:7500/mcp
 export MCP_SERVER_ORDER_URL=http://127.0.0.1:7501/mcp
 export A2A_SERVER_STATISTIC_A2A_URL=http://127.0.0.1:7600
@@ -47,6 +50,8 @@ env:
 	@echo "OTEL_EXPORTER_OTLP_ENDPOINT=$(OTEL_EXPORTER_OTLP_ENDPOINT)"
 	@echo "OTEL_STDOUT_LOG_GROUP=$(OTEL_STDOUT_LOG_GROUP)"
 	@echo "LOG_GROUP=$(LOG_GROUP)"
+	@echo "METRICS_HOST=$(METRICS_HOST)"
+	@echo "METRICS_PORT=$(METRICS_PORT)"
 activate:
 	@echo "Activate venv..."
 	@bash -c "source ../../.venv/bin/activate"

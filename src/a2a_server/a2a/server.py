@@ -92,6 +92,16 @@ class A2AServer:
                 elif envelope.message_type == "inventory.monitor":
                     logger.info("Handling inventory.monitor message type.")
                     
+                    if self.settings.AUTHORIZATION_DRY_RUN:
+                        logger.info("Authorization dry run enabled, skipping Cedar verification.")
+                    else:
+                        self.cedar_verifier.validate(
+                            action="send_message",
+                            resource_type="MessageType",
+                            resource_id=envelope.message_type,
+                            resource_attrs={"data": envelope.payload},
+                        )
+                        
                     response = await self.orchestrator.monitor(envelope.payload)
                     return response
                 

@@ -22,6 +22,28 @@ AGENT_CARD = {
     "stateTransitionHistory": False,
     "extendedAgentCard": False,
   },
+     "securitySchemes": {
+    "oauth2": {
+      "type": "oauth2",
+      "flows": {
+        "clientCredentials": {
+          "tokenUrl": "https://go-authorization.com/v1/auth",
+          "scopes": {
+            "a2a:message:send": "Send messages to the agent",
+            "a2a:task:read": "Read task status",
+            "statistics:compute": "Execute statistical calculations"
+          }
+        }
+      }
+    }
+  },
+  "security": [
+    {
+      "oauth2": [
+        "a2a:message:send"
+      ]
+    }
+  ],
   "defaultInputModes": ["application/json"],
   "defaultOutputModes": ["application/json"],
   "skills": [
