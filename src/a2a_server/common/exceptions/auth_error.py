@@ -8,3 +8,6 @@ class AuthorizationDeniedError(AppError):
 
 class MissingTokenError(AppError):
     pass
+
+class ForbiddenError(AppError):
+    pass

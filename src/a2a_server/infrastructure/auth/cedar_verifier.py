@@ -9,7 +9,7 @@ from cedarpy import (
 from src.a2a_server.domain.dto.context import SecurityContext
 
 from src.a2a_server.common.exceptions.auth_error import (
-    AuthorizationDeniedError,
+    ForbiddenError,
 )
 
 from src.a2a_server.infrastructure.context.request_context import (
@@ -111,4 +111,4 @@ class CedarVerifier:
 
             if not result.allowed:
                 logger.warning("Authorization denied for action=%s, resource_type=%s, resource_id=%s",action,resource_type,resource_id)
-                raise AuthorizationDeniedError(status_code=401, error="UNAUTHORIZED", error_type="InvalidAccessTokenError", message=f"Authorization denied: {action} {resource_type=} {resource_id=}")
+                raise ForbiddenError(status_code=403, error="FORBIDDEN", error_type="ForbiddenError", message=f"Authorization denied: {action} {resource_type=} {resource_id=}")

@@ -27,6 +27,16 @@ A2A_ROUTER_ERRORS_TOTAL = Counter(
     "Total router errors"
 )
 
+A2A_REQUEST_ERRORS_TOTAL = Counter(
+    "a2a_request_errors_total",
+    "Total A2A request errors"
+)
+
+A2A_UNCAUGHT_EXCEPTIONS_TOTAL = Counter(
+    "a2a_uncaught_exceptions_total",
+    "Total uncaught exceptions in A2A processing"
+)
+
 # In-flight requests
 IN_FLIGHT_REQUESTS = Gauge(
     "a2a_in_flight_requests",
