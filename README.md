@@ -89,3 +89,9 @@ Inventory Skills
                  ↓
              Observer
 ```
+
+TODO
+
+mcp dynamic registration pkce
+evals
+confidende scores

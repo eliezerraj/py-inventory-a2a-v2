@@ -51,6 +51,8 @@ from src.a2a_server.config.settings import settings
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 from starlette.responses import JSONResponse
 
+from src.a2a_server.infrastructure.oauth.cimd.client_metadata import CLIENT_METADATA
+
 # Setup logging
 setup_logger(settings.LOG_LEVEL, 
              settings.APP_NAME, 
@@ -225,6 +227,12 @@ a2AServer = A2AServer(settings, orchestrator)
 # ---------------------------------
 # API Endpoints
 # ---------------------------------
+@app.get("/oauth/client-metadata.json")
+def client_metadata():
+    return JSONResponse(
+        content=CLIENT_METADATA
+    )
+
 @app.get("/health")
 def health():
     return Response(

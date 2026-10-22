@@ -13,7 +13,7 @@ export ANCHOR_CHOICE=BALANCED
 export URL_AGENT=http://127.0.0.1:7601
 export SESSION_TIMEOUT=700
 
-export AUTHORIZATION_DRY_RUN=False
+export AUTHORIZATION_DRY_RUN=True
 export AUTHORIZATION_JWKS_URL=http://localhost:7100/v1/.well-known/jwks.json
 export AUTHORIZATION_ISSUER=go-authorizer-v2
 export AUTHORIZATION_AUDIENCE=go-ecommerce

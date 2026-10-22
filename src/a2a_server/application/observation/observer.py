@@ -23,7 +23,7 @@ class Observer:
             try:
                 resource_uri = f"product://{product["sku"]}"
                 response = await mcp_client.mcp_resource_fetcher(resource_uri, settings.MCP_SERVER_INVENTORY_URL)
-                # If the response is a JSON string, parse it into a dictionary
+              
                 if isinstance(response, str):
                     response = json.loads(response)
                     
@@ -36,6 +36,29 @@ class Observer:
                         "status_code": status_code,
                         "message": "Product not found",
                         "product": product["sku"]
+                    }
+                elif status_code == 401: # Handle captured error responses based on status code for CIMD workflow
+                    logger.warning("Unauthorized Protection required access for product: %s", product["sku"])
+                    
+                    # Extract www-authenticate header for OIDC/CIMD flow
+                    www_authenticate = response.get("www_authenticate", "")
+
+                    # Parse resource metadata URL from www-authenticate header Format: "Bearer resource_metadata=http://localhost:7501/.well-known/oauth-protected-resource"
+                    resource_metadata_url = None                    
+                    if www_authenticate and "resource_metadata=" in www_authenticate:
+                        try:
+                            resource_metadata_url = www_authenticate.split("resource_metadata=")[1].strip()
+                            logger.info("Extracted resource metadata URL: %s", resource_metadata_url)
+                        except Exception as parse_error:
+                            logger.error("Failed to parse resource_metadata URL: %s", parse_error)
+                    
+                    return {
+                        "error": True,
+                        "status_code": status_code,
+                        "message": "Unauthorized access - OIDC/CIMD flow required",
+                        "product": product["sku"],
+                        "www_authenticate": www_authenticate,
+                        "resource_metadata_url": resource_metadata_url,
                     }
                 elif status_code and status_code >= 400:
                     logger.error(f"Error response from inventory service: status_code={status_code}")
