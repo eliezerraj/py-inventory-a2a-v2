@@ -4,6 +4,7 @@ import numpy as np
 from src.a2a_server.domain.dto.model import ProductState
                 
 from src.a2a_server.application.action.action import Action
+from src.a2a_server.infrastructure.oauth.oauth import OAuthClient
 from src.a2a_server.application.observation.observer import Observer
 from src.a2a_server.application.state.builder import Builder
 from src.a2a_server.application.reasoning.decider import Decider
@@ -39,11 +40,21 @@ class Orchestrator:
         self.buildstate = Builder()
         self.decider = Decider()
         self.action = Action()
+        
+        # Load OAuth client
+        try:
+            self.oauth_client = OAuthClient()
+        except Exception as e:
+            logger.error("Failed to initialize OAuthClient: %s", e)
 
     async def observe(self, payload):
         logger.info(f"observe payload.: payload={payload}")
         with tracer.start_as_current_span("orchestrator.observe"): 
             response = await self.observer.observe(payload["product"])
+            
+            client_assertion = self.oauth_client.create_client_assertion()
+            print("=====>>>>> Client assertion:", client_assertion)
+            
             return response
 
     async def state(self, payload):
