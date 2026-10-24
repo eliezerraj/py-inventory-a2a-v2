@@ -46,7 +46,7 @@ class OAuthClient:
             self.private_key,
             algorithm="ES256",
             headers={
-                "kid": "inventory-key-v1"
+                "kid": "go-inventory-a2a-key-v1"
             }
         )
 

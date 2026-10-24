@@ -52,6 +52,7 @@ from starlette.middleware.trustedhost import TrustedHostMiddleware
 from starlette.responses import JSONResponse
 
 from src.a2a_server.infrastructure.oauth.cimd.client_metadata import CLIENT_METADATA
+from src.a2a_server.infrastructure.oauth.jwks_metadata import JWKS_METADATA
 
 # Setup logging
 setup_logger(settings.LOG_LEVEL, 
@@ -232,6 +233,15 @@ def client_metadata():
     return JSONResponse(
         content=CLIENT_METADATA
     )
+
+@app.get("/.well-known/jwks.json")
+def jwks():
+    with tracer.start_as_current_span("main.well-known.jwks") as span:
+        jwks=JWKS_METADATA
+        span.set_status(Status(StatusCode.OK)) 
+        return JSONResponse(
+            content=jwks
+        )
 
 @app.get("/health")
 def health():
