@@ -8,8 +8,15 @@ from src.a2a_server.infrastructure.oauth.oauth import OAuthClient
 from src.a2a_server.application.observation.observer import Observer
 from src.a2a_server.application.state.builder import Builder
 from src.a2a_server.application.reasoning.decider import Decider
+from src.a2a_server.config.settings import settings
+from src.a2a_server.domain.dto.context import SecurityContext
 
 from opentelemetry import trace
+
+from src.a2a_server.infrastructure.context.request_context import (
+    get_security_context,
+    set_security_context,
+)
 
 # --------------------------------
 """
@@ -33,13 +40,14 @@ logger = logging.getLogger(__name__)
 
 class Orchestrator:
     
-    def __init__(self):
+    def __init__(self, http_adapter):
         logger.info("Orchestrator initialized SUCCESSFULLY")
         
         self.observer = Observer()
         self.buildstate = Builder()
         self.decider = Decider()
         self.action = Action()
+        self.http_adapter = http_adapter
         
         # Load OAuth client
         try:
@@ -49,12 +57,49 @@ class Orchestrator:
 
     async def observe(self, payload):
         logger.info(f"observe payload.: payload={payload}")
-        with tracer.start_as_current_span("orchestrator.observe"): 
+        with tracer.start_as_current_span("orchestrator.observe"):
+            
             response = await self.observer.observe(payload["product"])
             
-            client_assertion = self.oauth_client.create_client_assertion()
-            print("=====>>>>> Client assertion:", client_assertion)
-            
+            if response["status_code"] == 401:
+                print(" =============== Unauthorized response received 401 ===============")
+                logger.warning("Unauthorized response received. Attempting to create client assertion.")
+                client_assertion = self.oauth_client.create_client_assertion()
+                
+                base_url = "http://localhost:7100"
+                path = "/v1/auth/token"
+                headers = {"Content-Type": "application/x-www-form-urlencoded"}
+                
+                response_authorized = await self.http_adapter.post(
+                    base_url=base_url,
+                    path=path,
+                    data={
+                        "grant_type": "client_credentials",
+                        "resource": "http://py-mcp-order-v2:7501/mcp",
+                        "client_id": "http://py-inventory-a2a-v2:7601/oauth/client-metadata.json",
+                        "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
+                        "client_assertion": client_assertion,
+                        },
+                    headers={**headers}
+                )
+                
+                print("============= new token ===============>")
+                print(response_authorized)
+                print("============= new token ===============>")
+                
+                security = get_security_context()
+                sec_context = SecurityContext(
+                    x_request_id=security.x_request_id,
+                    auth_token=response_authorized.get("access_token"),
+                )
+                set_security_context(sec_context)
+                
+                response = await self.observer.observe(payload["product"])
+                
+                logger.info("========2==========> response=%s", response)
+            elif response["status_code"] >= 400:
+                logger.warning("Forbidden response received.")
+                           
             return response
 
     async def state(self, payload):

@@ -13,7 +13,7 @@ public_jwk = json.loads(
 public_jwk.update(
     {
         "alg": "ES256",
-        "kid": "inventory-key-v1",
+        "kid": "go-inventory-a2a-key-v1",
         "use": "sig",
     }
 )

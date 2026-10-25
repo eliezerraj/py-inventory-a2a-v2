@@ -52,7 +52,11 @@ async def mcp_resource_fetcher(resource_uri: str, mcp_server_url: str) -> str:
         "X-Request-ID": security.x_request_id
     }
     
-    logger.info("Fetching resource for URI: %s with x-request-id: %s headers: %s", resource_uri, headers["X-Request-ID"], headers)
+    logger.info("Fetching resource for URI: %s with x-request-id: %s ", resource_uri, headers["X-Request-ID"])
+    
+    print("================= token from security context ================")
+    print(security.auth_token)
+    print("==============================================================")
     
     # Capture error responses for later inspection (status code >= 400) for CIMD workflow
     captured = {}

@@ -37,7 +37,7 @@ class OAuthClient:
             "sub": "http://py-inventory-a2a-v2:7601/oauth/client-metadata.json",
             "aud": "http://go-authorizer-v2:7100/v1/auth/token",
             "iat": int(time.time()),
-            "exp": int(time.time()) + 60,
+            "exp": int(time.time()) + 60000,
             "jti": str(uuid.uuid4())
         }
 

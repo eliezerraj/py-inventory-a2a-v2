@@ -34,6 +34,7 @@ from src.a2a_server.common.exceptions.a2a_error import (
     A2ARouterError,
 )
 
+from src.a2a_server.infrastructure.adapter.http.http_client import HttpAdapter
 from src.a2a_server.a2a.message_model import A2ARequest, A2AEnvelope, A2AResponse
 from src.a2a_server.a2a.server import A2AServer
 from src.a2a_server.application.orchestration.orchestrator import Orchestrator
@@ -219,10 +220,16 @@ def create_error_response(exception: Exception, status_code: int = None) -> dict
         "message": exception.message if hasattr(exception, 'message') else str(exception)
     }
 
+
+# ---------------------------------
+# Initialize Http client
+# ---------------------------------
+http_adapter = HttpAdapter()
+
 # ---------------------------------
 # Application Metadata
 # ---------------------------------
-orchestrator = Orchestrator()
+orchestrator = Orchestrator(http_adapter)
 a2AServer = A2AServer(settings, orchestrator)
 
 # ---------------------------------

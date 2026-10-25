@@ -1,9 +1,9 @@
 CLIENT_METADATA = {
-  "client_id": "http://py-inventory-a2a-v2/oauth/client-metadata.json",
+  "client_id": "http://py-inventory-a2a-v2:7601/oauth/client-metadata.json",
   "client_name": "Agent Inventory a2a",
   "client_uri": "http://py-inventory-a2a-v2:7601",
   "redirect_uris": [
-    "http://py-inventory-a2a-v2/oauth/callback"
+    "http://py-inventory-a2a-v2:7601/oauth/callback"
   ],
   "grant_types": [
     "urn:ietf:params:oauth:grant-type:token-exchange"
