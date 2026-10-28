@@ -35,7 +35,7 @@ class OAuthClient:
         claims = {
             "iss": "http://py-inventory-a2a-v2:7601/oauth/client-metadata.json",
             "sub": "http://py-inventory-a2a-v2:7601/oauth/client-metadata.json",
-            "aud": "http://go-authorizer-v2:7100/v1/auth/token",
+            "aud": settings.AUTHORIZATION_ISSUER,
             "iat": int(time.time()),
             "exp": int(time.time()) + 60000,
             "jti": str(uuid.uuid4())
@@ -46,9 +46,8 @@ class OAuthClient:
             self.private_key,
             algorithm="ES256",
             headers={
-                "kid": "go-inventory-a2a-key-v1"
+                "kid": settings.CURRENT_KID
             }
         )
 
         return client_assertion
-

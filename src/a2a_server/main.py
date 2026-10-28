@@ -42,6 +42,7 @@ from src.a2a_server.infrastructure.telemetry.tracer import setup_tracer
 from src.a2a_server.a2a.agent_card import AGENT_CARD as agent
 from src.a2a_server.infrastructure.middleware.middleware import RequestContextMiddleware
 from src.a2a_server.config.logger import REQUEST_ID_CTX
+from src.a2a_server.infrastructure.oauth.oauth import OAuthClient
 
 from opentelemetry import trace
 from opentelemetry.trace.status import Status, StatusCode
@@ -235,6 +236,16 @@ a2AServer = A2AServer(settings, orchestrator)
 # ---------------------------------
 # API Endpoints
 # ---------------------------------
+@app.get("/v1/client_assertion")
+def client_assertion():
+    with tracer.start_as_current_span("main.client_assertion") as span:
+        oauth_client = OAuthClient()
+        client_assertion = oauth_client.create_client_assertion()
+        span.set_status(Status(StatusCode.OK))
+        return JSONResponse(
+            content={"client_assertion": client_assertion}
+        )
+
 @app.get("/oauth/client-metadata.json")
 def client_metadata():
     return JSONResponse(

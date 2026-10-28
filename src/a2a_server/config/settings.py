@@ -23,6 +23,11 @@ class Settings:
         self.AUTHORIZATION_JWKS_URL = os.getenv("AUTHORIZATION_JWKS_URL")
         self.AUTHORIZATION_ISSUER = os.getenv("AUTHORIZATION_ISSUER")
         self.AUTHORIZATION_AUDIENCE = os.getenv("AUTHORIZATION_AUDIENCE")
+        self.MCP_PROTECTED_RESOURCE = os.getenv("MCP_PROTECTED_RESOURCE")
+        
+        self.AUTHORIZATION_CLIENT_ID_ASSERTION = os.getenv("AUTHORIZATION_CLIENT_ID_ASSERTION")
+        self.AUTHORIZATION_URL_ASSERTION = os.getenv("AUTHORIZATION_URL_ASSERTION")
+        self.CURRENT_KID = os.getenv("CURRENT_KID")
         
         self.METRICS_HOST = os.getenv("HOST")
         self.METRICS_PORT = int(os.getenv("METRICS_PORT", 8600))

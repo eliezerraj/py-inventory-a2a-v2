@@ -1,8 +1,11 @@
 import json
+import jwt
+
 from pathlib import Path
 
-import jwt
 from cryptography.hazmat.primitives import serialization
+
+from src.a2a_server.config.settings import settings
 
 public_key_path = Path(__file__).parent / "keys" / "public_key.pem"
 public_key = serialization.load_pem_public_key(public_key_path.read_bytes())
@@ -13,7 +16,7 @@ public_jwk = json.loads(
 public_jwk.update(
     {
         "alg": "ES256",
-        "kid": "go-inventory-a2a-key-v1",
+        "kid": settings.CURRENT_KID,
         "use": "sig",
     }
 )

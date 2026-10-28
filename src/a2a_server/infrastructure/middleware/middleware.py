@@ -32,7 +32,7 @@ tracer = trace.get_tracer(__name__)
 logger = logging.getLogger(__name__)
 
 TRACING_EXCLUDED_PATHS = ["/metrics", "/health"]
-AUTHORIZATION_EXCLUDED_PATHS = ["/metrics", "/health", "/v1/info", "/.well-known/agent-card.json", "/oauth/client-metadata.json", "/.well-known/jwks.json"]
+AUTHORIZATION_EXCLUDED_PATHS = ["/metrics", "/health", "/v1/info", "/.well-known/agent-card.json", "/oauth/client-metadata.json", "/.well-known/jwks.json", "/v1/client_assertion"]
 
 #---------------------------------
 # Exception handler utility

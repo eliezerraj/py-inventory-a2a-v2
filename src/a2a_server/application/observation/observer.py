@@ -13,7 +13,7 @@ tracer = trace.get_tracer(__name__)
 logger = logging.getLogger(__name__)
 
 class Observer:
-    
+
     def __init__(self):
         logger.info("Observer initialized SUCCESSFULLY")
     
@@ -29,6 +29,7 @@ class Observer:
                     
                 # Check for error status codes
                 status_code = response.get("status_code")
+                                
                 if status_code == 404:
                     logger.warning("Product not found: %s", product["sku"])
                     return {
@@ -38,9 +39,9 @@ class Observer:
                         "product": product["sku"]
                     }
                 elif status_code == 401: # Handle captured error responses based on status code for CIMD workflow
-                    print("============== Starting Unauthorized Protection FLOW OIDC/CIMD ==================")
+                    print("2... ============== Starting Unauthorized Protection FLOW OIDC/CIMD ==================")
                     logger.warning("STARTING Unauthorized Protection FLOW for product: %s", product["sku"])
-                    
+
                     # Extract www-authenticate header for OIDC/CIMD flow
                     www_authenticate = response.get("www_authenticate", "")
 
@@ -56,7 +57,7 @@ class Observer:
                     return {
                         "error": True,
                         "status_code": status_code,
-                        "message": "Unauthorized access - OIDC/CIMD flow required",
+                        "message": "Unauthorized access - OIDC/CIMD flow required: " + response['message'] if 'message' in response and 'error' in response['message'] else "",
                         "product": product["sku"],
                         "www_authenticate": www_authenticate,
                         "resource_metadata_url": resource_metadata_url,
@@ -66,10 +67,10 @@ class Observer:
                     return {
                         "error": True,
                         "status_code": status_code,
-                        "message": "Service Inventory error",
+                        "message": "Service Inventory Internal error",
                         "product": product["sku"]
                     }
-                    
+
             except Exception as e:
                 logger.error(f"Error fetching inventory service asynchronously: {e}")
                 return {

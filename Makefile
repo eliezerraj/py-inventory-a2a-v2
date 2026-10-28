@@ -13,10 +13,15 @@ export ANCHOR_CHOICE=BALANCED
 export URL_AGENT=http://127.0.0.1:7601
 export SESSION_TIMEOUT=700
 
-export AUTHORIZATION_DRY_RUN=True
+export AUTHORIZATION_DRY_RUN=False
 export AUTHORIZATION_JWKS_URL=http://localhost:7100/v1/.well-known/jwks.json
 export AUTHORIZATION_ISSUER=go-authorizer-v2
-export AUTHORIZATION_AUDIENCE=go-ecommerce
+export AUTHORIZATION_AUDIENCE=py-inventory-a2a-v2
+
+export AUTHORIZATION_CLIENT_ID_ASSERTION=http://py-inventory-a2a-v2:7601/oauth/client-metadata.json
+export AUTHORIZATION_URL_ASSERTION=http://localhost:7100
+export CURRENT_KID=go-inventory-a2a-key-2026-10-26
+export MCP_PROTECTED_RESOURCE=http://py-inventory-a2a-v2:7601
 
 export METRICS_HOST=0.0.0.0
 export METRICS_PORT=8601
