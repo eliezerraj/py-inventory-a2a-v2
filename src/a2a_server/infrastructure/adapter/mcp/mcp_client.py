@@ -1,6 +1,7 @@
 import logging
 import os
 import httpx2
+import json
 
 from opentelemetry import trace
 
@@ -51,17 +52,50 @@ async def mcp_resource_fetcher(resource_uri: str, mcp_server_url: str) -> str:
         "X-Request-ID": security.x_request_id
     }
     
-    logger.info("Fetching resource for URI: %s with x-request-id: %s headers: %s", resource_uri, headers["X-Request-ID"], headers)
+    logger.info("Fetching resource for URI: %s with x-request-id: %s ", resource_uri, headers["X-Request-ID"])
     
+    print("================= token from security context ================")
+    print(security.auth_token)
+    print("==============================================================")
+    
+    # Capture error responses for later inspection (status code >= 400) for CIMD workflow
+    captured = {}
+    async def capture_error_response(response):
+        if response.status_code >= 400:
+            await response.aread()
+            captured.update(
+                status_code=response.status_code,
+                headers=dict(response.headers),
+                body=response.text,
+            )
+
     with tracer.start_as_current_span("mcp.mcp_resource_fetcher") as span:    
-        # Establish HTTP connection to the MCP server
         try:
-            async with httpx2.AsyncClient(headers=headers) as http_client:
+            async with httpx2.AsyncClient(headers=headers, event_hooks={"response": [capture_error_response]}) as http_client:
                 async with streamable_http_client(mcp_server_url, http_client=http_client) as (read_stream, write_stream):
                     async with ClientSession(read_stream, write_stream) as session:
                         await session.initialize()
+                        
                         result = await session.read_resource(resource_uri)
+                        
                         return result.contents[0].text
+                    
         except Exception as e:
             logger.error("Exception occurred while fetching resource for URI: %s, error: %s", resource_uri, e)
-            raise e
+            
+            status_code = captured.get("status_code", 500)
+            
+            # Handle captured error responses based on status code for CIMD workflow
+            if status_code == 401:
+                span.set_attribute("http.status_code", status_code)
+                www_authenticate = captured["headers"].get("www-authenticate")
+                logger.warning("Response status_code: %s, www-authenticate: %s, body: %s", status_code, www_authenticate, captured["body"])
+                return json.dumps({
+                    "status_code": 401,
+                    "www_authenticate": www_authenticate,
+                    "error": "Unauthorized"
+                })
+            else:
+                logger.warning("Response status_code: %s", status_code)
+                span.set_attribute("http.status_code", status_code)
+                raise e

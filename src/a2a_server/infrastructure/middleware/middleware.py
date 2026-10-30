@@ -32,7 +32,7 @@ tracer = trace.get_tracer(__name__)
 logger = logging.getLogger(__name__)
 
 TRACING_EXCLUDED_PATHS = ["/metrics", "/health"]
-AUTHORIZATION_EXCLUDED_PATHS = ["/metrics", "/health", "/v1/info", "/.well-known/agent-card.json"]
+AUTHORIZATION_EXCLUDED_PATHS = ["/metrics", "/health", "/v1/info", "/.well-known/agent-card.json", "/oauth/client-metadata.json", "/.well-known/jwks.json", "/v1/client_assertion"]
 
 #---------------------------------
 # Exception handler utility
@@ -76,7 +76,8 @@ def handle_auth_exception(exception: Exception, span, request_id: str, log_level
     return JSONResponse(
         status_code=status_code,
         content=error_response,
-        headers={"x-request-id": request_id}
+        headers={"x-request-id": request_id,
+                 "WWW-Authenticate": f"Bearer resource_metadata={settings.MCP_PROTECTED_RESOURCE}/.well-known/oauth-protected-resource" }
     )
 
 class FilteringSpanExporter(SpanExporter):

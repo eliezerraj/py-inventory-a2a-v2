@@ -1,0 +1,34 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ing-py-inventory-a2a-v2
+  namespace: test-a
+  annotations:
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    nginx.ingress.kubernetes.io/default-backend: "svc-py-inventory-a2a-v2"
+    nginx.ingress.kubernetes.io/proxy-body-timeout: "300"
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "300"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: py-inventory-a2a-v2.architecture.xpto.io
+      http:
+        paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: svc-py-inventory-a2a-v2
+              port:
+                number: 7601
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: svc-py-inventory-a2a-v2
+              port:
+                number: 8601

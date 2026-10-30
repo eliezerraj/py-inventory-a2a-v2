@@ -1,0 +1,10 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: pdb-py-inventory-a2a-v2
+  namespace: test-a
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+        app: py-inventory-a2a-v2

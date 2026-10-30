@@ -3,7 +3,7 @@ import logging
 from typing import Any, Optional, Dict
 
 from opentelemetry import trace, propagate
-from src.mcp_server.infrastructure.context.request_context import (
+from src.a2a_server.infrastructure.context.request_context import (
     get_security_context,
 )
 
@@ -11,16 +11,17 @@ tracer = trace.get_tracer(__name__)
 logger = logging.getLogger(__name__)
 
 class HttpAdapter:
-    def __init__(self, base_url: str):
-        self.base_url = base_url.rstrip("/")
-        logger.info(f"Initializing HttpAdapter with base_url: {self.base_url} SUCCESSFULLY")
+    def __init__(self):
+        logger.info("Initializing HttpAdapter SUCCESSFULLY")
 
     async def request(
         self,
+        base_url: str,
         method: str,
         path: str,
         params: Optional[Dict[str, Any]] = None,
         payload: Optional[Any] = None,
+        data: Optional[Dict[str, Any]] = None,
         headers: Optional[Dict[str, str]] = None,
         **kwargs: Any,
     ) -> Optional[Any]:
@@ -31,11 +32,14 @@ class HttpAdapter:
         :param path: URL path (e.g. "/order" or "/order/123")
         :param params: Query string parameters dictionary
         :param payload: JSON body / payload for the request
+        :param data: Form data for the request
         :param headers: Additional request headers
         """
+        
+        base_url = base_url.rstrip("/")
         method = method.upper()
         clean_path = path if path.startswith("/") else f"/{path}"
-        url = f"{self.base_url}{clean_path}"
+        url = f"{base_url}{clean_path}"
 
         # Resolve security context
         security_context = get_security_context()
@@ -47,7 +51,9 @@ class HttpAdapter:
 
         # Build headers
         merged_headers = {
-            "Content-Type": "application/json",
+            "Content-Type": (
+                "application/x-www-form-urlencoded" if data is not None else "application/json"
+            ),
             **({"Authorization": f"Bearer {auth_token}"} if auth_token else {}),
             **({"x-request-id": request_id} if request_id else {}),
             **(headers or {}),
@@ -67,7 +73,8 @@ class HttpAdapter:
                         method=method,
                         url=url,
                         params=params,
-                        json=payload,
+                        json=payload if data is None else None,
+                        data=data,
                         headers=merged_headers,
                         **kwargs,
                     )
@@ -93,14 +100,14 @@ class HttpAdapter:
                 return None
 
     # Optional convenience helpers delegating to request():
-    async def get(self, path: str, params: Optional[Dict[str, Any]] = None, **kwargs: Any) -> Optional[Any]:
-        return await self.request("GET", path=path, params=params, **kwargs)
+    async def get(self, base_url: str, path: str, params: Optional[Dict[str, Any]] = None, **kwargs: Any) -> Optional[Any]:
+        return await self.request(base_url, "GET", path=path, params=params, **kwargs)
 
-    async def post(self, path: str, payload: Optional[Any] = None, **kwargs: Any) -> Optional[Any]:
-        return await self.request("POST", path=path, payload=payload, **kwargs)
+    async def post(self, base_url: str, path: str, payload: Optional[Any] = None, **kwargs: Any) -> Optional[Any]:
+        return await self.request(base_url, "POST", path=path, payload=payload, **kwargs)
 
-    async def put(self, path: str, payload: Optional[Any] = None, **kwargs: Any) -> Optional[Any]:
-        return await self.request("PUT", path=path, payload=payload, **kwargs)
+    async def put(self, base_url: str, path: str, payload: Optional[Any] = None, **kwargs: Any) -> Optional[Any]:
+        return await self.request(base_url, "PUT", path=path, payload=payload, **kwargs)
 
-    async def delete(self, path: str, params: Optional[Dict[str, Any]] = None, **kwargs: Any) -> Optional[Any]:
-        return await self.request("DELETE", path=path, params=params, **kwargs)
+    async def delete(self, base_url: str, path: str, params: Optional[Dict[str, Any]] = None, **kwargs: Any) -> Optional[Any]:
+        return await self.request(base_url, "DELETE", path=path, params=params, **kwargs)

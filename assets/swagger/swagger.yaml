@@ -1,0 +1,1257 @@
+openapi: 3.0.3
+info:
+  title: Order Service
+  description: API for managing sessions of the order service. (Date 2026-08-18)
+  version: 1.0.0
+servers:
+  - url: 'https://go-order-v2/v1'
+paths:
+  /info:
+    get:
+      tags:
+        - Order
+      summary: Get some basic information about the order service
+      description: 'Retrieves some basic information about the order service.'
+      parameters:
+        - in: header
+          name: X-Request-ID
+          required: false
+          schema:
+            type: string
+          description: (Optional) request ID for tracking the request. Strongly recommended to provide it. Always use the X-Request-ID already propagated in request headers. If not provided, a random UUID will be generated and used for tracking. 
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  info:
+                    type: object
+                    properties:
+                      App:
+                        type: object
+                        properties:
+                          Name:
+                            type: string
+                            example: go-payment-v2
+                          Version:
+                            type: string
+                            example: '2.0'
+                          Env:
+                            type: string
+                            example: dev
+                          Account:
+                            type: string
+                            example: local:localhost
+                          Type:
+                            type: string
+                            example: webserver
+                      HTTP:
+                        type: object
+                        properties:
+                          Timeout:
+                            type: integer
+                            example: 120000000000
+                          KeepAlive:
+                            type: integer
+                            example: 120000000000
+                          ReadTimeout:
+                            type: integer
+                            example: 120000000000
+                          WriteTimeout:
+                            type: integer
+                            example: 120000000000
+                          IdleConnTimeout:
+                            type: integer
+                            example: 120000000000
+                          MaxIdleConns:
+                            type: integer
+                            example: 2
+                          MaxIdleConnsPerHost:
+                            type: integer
+                            example: 2
+                          MaxConnsPerHost:
+                            type: integer
+                            example: 2
+                          Port:
+                            type: string
+                            example: '7003'
+                          ReadBufferSize:
+                            type: integer
+                            example: 12288
+                          DisableStartupMessage:
+                            type: boolean
+                            example: true
+                      Database:
+                        type: object
+                        properties:
+                          DSN:
+                            type: string
+                            example: host=127.0.0.1 port=5432 database=postgres
+                          Host:
+                            type: string
+                            example: 127.0.0.1
+                          Port:
+                            type: string
+                            example: '5432'
+                          Username:
+                            type: string
+                            example: postgres
+                          Password:
+                            type: string
+                            example: postgres
+                          Name:
+                            type: string
+                            example: postgres
+                          Schema:
+                            type: string
+                            example: public
+                          QueryTracer:
+                            type: boolean
+                            example: false
+                          MaxConnections:
+                            type: integer
+                            example: 10
+                          MinConnections:
+                            type: integer
+                            example: 5
+                          ConnTimeout:
+                            type: integer
+                            example: 5000000000
+                          ConnLifetime:
+                            type: integer
+                            example: 86400000000000
+                          ConnIdleTime:
+                            type: integer
+                            example: 3600000000000
+                          MaxConnLifetimeJitter:
+                            type: integer
+                            example: 120000000000
+                          HealthCheckTimeout:
+                            type: integer
+                            example: 15000000000
+                      Log:
+                        type: object
+                        properties:
+                          Level:
+                            type: string
+                            example: debug
+                          Mode:
+                            type: string
+                            example: json
+                      OtelEnv:
+                        type: object
+                        properties:
+                          OtelExportEndpoint:
+                            type: string
+                            example: 127.0.0.1:4317
+                          UseStdoutTracerExporter:
+                            type: boolean
+                            example: false
+                          UseOtlpCollector:
+                            type: boolean
+                            example: false
+                          OtelMetricsPort:
+                            type: string
+                            example: '8003'
+                      Authorization:
+                        type: object
+                        properties:
+                          HeaderKey:
+                            type: string
+                            example: Authorization
+                          DryRun:
+                            type: boolean
+                            example: false
+                          JwksURL:
+                            type: string
+                            example: http://localhost:7100/v1/.well-known/jwks.json
+                          RequiredAuthHeader:
+                            type: boolean
+                            example: true
+                          Timeout:
+                            type: integer
+                            example: 15000000000
+                      KafkaProducer:
+                        type: object
+                        properties:
+                          BrokerList:
+                            type: string
+                            example: localhost:9092
+                          Topic:
+                            type: string
+                            example: payment.topic.01
+                          Protocol:
+                            type: string
+                            example: SASL_PLAINTEXT
+                          Mechanism:
+                            type: string
+                            example: PLAIN
+                          Username:
+                            type: string
+                            example: admin
+                          Password:
+                            type: string
+                            example: admin
+                          Name:
+                            type: string
+                            example: payment-producer.local
+                          DryRun:
+                            type: boolean
+                            example: true
+                      Inventory:
+                        type: object
+                        properties:
+                          Endpoint:
+                            type: string
+                            example: ''
+                          UrlPath:
+                            type: string
+                            example: ''
+                          Timeout:
+                            type: integer
+                            example: 0
+
+  /order/{order_id}:
+    get:
+      tags:
+        - Order
+      summary: Get order details by order ID
+      description: 'Retrieves complete order information including order items and payment details.'
+      parameters:
+        - in: path
+          name: order_id
+          required: true
+          schema:
+            type: string
+          description: The order ID to retrieve
+        - in: header
+          name: Authorization
+          required: true
+          schema:
+            type: string
+          description: (Mandatory) Authorization token for authentication.
+        - in: header
+          name: X-Request-ID
+          required: false
+          schema:
+            type: string
+          description: (Optional) request ID for tracking the request. Strongly recommended to provide it. Always use the X-Request-ID already propagated in request headers. If not provided, a random UUID will be generated and used for tracking. 
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    type: string
+                    example: 'Order retrieved successfully'
+                  order:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                        example: 8
+                      order_number:
+                        type: string
+                        example: 'ord-106'
+                      transaction_id:
+                        type: string
+                        example: 'txn:ord-106'
+                      order_date:
+                        type: string
+                        format: date-time
+                        example: '2026-04-29T00:00:00Z'
+                      status:
+                        type: string
+                        example: 'payment:pending'
+                      currency:
+                        type: string
+                        example: 'BRL'
+                      amount:
+                        type: number
+                        example: 58
+                      customer_id:
+                        type: string
+                        example: 'juliana'
+                      order_item:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: integer
+                              example: 13
+                            fk_order_id:
+                              type: integer
+                              example: 8
+                            product:
+                              type: object
+                              properties:
+                                id:
+                                  type: integer
+                                  example: 4
+                            status:
+                              type: string
+                              example: 'payment:pending'
+                            quantity:
+                              type: integer
+                              example: 2
+                            currency:
+                              type: string
+                              example: 'BRL'
+                            amount:
+                              type: number
+                              example: 38
+                            created_at:
+                              type: string
+                              format: date-time
+                              example: '2026-08-31T22:44:15.072772-03:00'
+                            updated_at:
+                              type: string
+                              format: date-time
+                              example: '2026-08-31T23:04:54.687388-03:00'
+                      payment_details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: integer
+                              example: 23
+                            payment_number:
+                              type: string
+                              example: 'pay:ord-106'
+                            transaction_id:
+                              type: string
+                              example: 'txn:ord-106'
+                            type:
+                              type: string
+                              example: 'credit_card'
+                            order:
+                              type: object
+                              properties:
+                                id:
+                                  type: integer
+                                  example: 8
+                                order_number:
+                                  type: string
+                                  example: '8'
+                                order_date:
+                                  type: string
+                                  format: date-time
+                                  example: '0001-01-01T00:00:00Z'
+                                created_at:
+                                  type: string
+                                  format: date-time
+                                  example: '0001-01-01T00:00:00Z'
+                            payment_detail:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  payment_detail_date:
+                                    type: string
+                                    format: date-time
+                                    example: '0001-01-01T00:00:00Z'
+                                  currency:
+                                    type: string
+                                    example: 'BRL'
+                                  amount:
+                                    type: number
+                                    example: 100
+                                  credit_card:
+                                    type: object
+                                    properties:
+                                      pan:
+                                        type: string
+                                        example: '2222.2222.2222.2222'
+                                      holder:
+                                        type: string
+                                        example: 'Lucas'
+                                  created_at:
+                                    type: string
+                                    format: date-time
+                                    example: '2026-08-31T22:44:43.049552-03:00'
+                            created_at:
+                              type: string
+                              format: date-time
+                              example: '2026-08-31T22:44:43.049552-03:00'
+                      created_at:
+                        type: string
+                        format: date-time
+                        example: '2026-08-31T22:44:15.072772-03:00'
+                      updated_at:
+                        type: string
+                        format: date-time
+                        example: '2026-08-31T23:04:54.687388-03:00'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                        example: '25257782-9de3-4c2d-937a-3c56c02a24cc'
+                      code:
+                        type: string
+                        example: 'Bad Request'
+                      description:
+                        type: string
+                        example: 'Invalid input parameters'
+                  status_code:
+                    type: integer
+                    example: 400
+                  type:
+                    type: string
+                    example: 'business_error'
+                  reason:
+                    type: string
+                    example: 'Invalid request parameters'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                        example: '25257782-9de3-4c2d-937a-3c56c02a24cc'
+                      code:
+                        type: string
+                        example: 'Unauthorized'
+                      description:
+                        type: string
+                        example: 'Authentication failed'
+                  status_code:
+                    type: integer
+                    example: 401
+                  type:
+                    type: string
+                    example: 'business_error'
+                  reason:
+                    type: string
+                    example: 'Access denied, check your credentials'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                        example: '25257782-9de3-4c2d-937a-3c56c02a24cc'
+                      code:
+                        type: string
+                        example: 'Forbidden'
+                      description:
+                        type: string
+                        example: 'Access forbidden'
+                  status_code:
+                    type: integer
+                    example: 403
+                  type:
+                    type: string
+                    example: 'business_error'
+                  reason:
+                    type: string
+                    example: 'Insufficient permissions'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                        example: '25257782-9de3-4c2d-937a-3c56c02a24cc'
+                      code:
+                        type: string
+                        example: 'Not Found'
+                      description:
+                        type: string
+                        example: 'Resource not found'
+                  status_code:
+                    type: integer
+                    example: 404
+                  type:
+                    type: string
+                    example: 'business_error'
+                  reason:
+                    type: string
+                    example: 'Payment not found'
+        '429':
+          description: Too Many Requests
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                        example: '25257782-9de3-4c2d-937a-3c56c02a24cc'
+                      code:
+                        type: string
+                        example: 'Too Many Requests'
+                      description:
+                        type: string
+                        example: 'Rate limit exceeded'
+                  status_code:
+                    type: integer
+                    example: 429
+                  type:
+                    type: string
+                    example: 'business_error'
+                  reason:
+                    type: string
+                    example: 'Too many requests, please try again later'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                        example: '25257782-9de3-4c2d-937a-3c56c02a24cc'
+                      code:
+                        type: string
+                        example: 'Internal Server Error'
+                      description:
+                        type: string
+                        example: 'An internal error occurred while processing the request'
+                  status_code:
+                    type: integer
+                    example: 500
+                  type:
+                    type: string
+                    example: 'business_error'
+                  reason:
+                    type: string
+                    example: 'Internal server error'
+
+  /order:
+    post:
+      tags:
+        - Order
+      summary: Create a new order
+      description: 'Creates a new order with the provided details including order items.'
+      parameters:
+        - in: header
+          name: Authorization
+          required: true
+          schema:
+            type: string
+          description: (Mandatory) Authorization token for authentication.
+        - in: header
+          name: X-Request-ID
+          required: false
+          schema:
+            type: string
+          description: (Optional) request ID for tracking the request. Strongly recommended to provide it. Always use the X-Request-ID already propagated in request headers. If not provided, a random UUID will be generated and used for tracking. 
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                order_number:
+                  type: string
+                  description: Order number
+                  example: 'ord-135'
+                customer_id:
+                  type: string
+                  description: Customer ID
+                  example: 'juliana'
+                order_date:
+                  type: string
+                  description: Order date (YYYY-MM-DD format)
+                  example: '2026-04-29'
+                order_item:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      product:
+                        type: object
+                        properties:
+                          sku:
+                            type: string
+                            description: Product SKU
+                            example: 'sku-500'
+                      quantity:
+                        type: integer
+                        description: Item quantity
+                        example: 2
+                      discount:
+                        type: number
+                        description: Discount amount
+                        example: 0
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    type: string
+                    example: 'Order added successfully'
+                  order:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                        example: 35
+                      order_number:
+                        type: string
+                        example: 'ord-135'
+                      transaction_id:
+                        type: string
+                        example: 'txn:ord-135'
+                      order_date:
+                        type: string
+                        format: date-time
+                        example: '2026-04-29T00:00:00Z'
+                      status:
+                        type: string
+                        example: 'order:pending'
+                      currency:
+                        type: string
+                        example: 'BRL'
+                      amount:
+                        type: number
+                        example: 240
+                      customer_id:
+                        type: string
+                        example: 'juliana'
+                      order_item:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            product:
+                              type: object
+                              properties:
+                                id:
+                                  type: integer
+                                  example: 4
+                                sku:
+                                  type: string
+                                  example: 'sku-500'
+                                type:
+                                  type: string
+                                  example: 'beverage'
+                                name:
+                                  type: string
+                                  example: 'milk 500'
+                                status:
+                                  type: string
+                                  example: 'IN-STOCK'
+                                price:
+                                  type: object
+                                  properties:
+                                    id:
+                                      type: integer
+                                      example: 4
+                                    product_id:
+                                      type: integer
+                                      example: 4
+                                    currency:
+                                      type: string
+                                      example: 'BRL'
+                                    amount:
+                                      type: number
+                                      example: 19
+                                    started_at:
+                                      type: string
+                                      format: date-time
+                                      example: '2026-08-31T21:49:15.670848-03:00'
+                                    ended_at:
+                                      type: string
+                                      format: date-time
+                                      example: '2027-08-26T21:49:15.670847-03:00'
+                                inventory:
+                                  type: object
+                                  properties:
+                                    id:
+                                      type: integer
+                                      example: 4
+                                    available:
+                                      type: integer
+                                      example: 931
+                                    sold:
+                                      type: integer
+                                      example: 69
+                            quantity:
+                              type: integer
+                              example: 2
+                            currency:
+                              type: string
+                              example: 'BRL'
+                            amount:
+                              type: number
+                              example: 38
+                            created_at:
+                              type: string
+                              format: date-time
+                              example: '0001-01-01T00:00:00Z'
+                      created_at:
+                        type: string
+                        format: date-time
+                        example: '2026-09-13T03:00:40.334577733Z'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                        example: '25257782-9de3-4c2d-937a-3c56c02a24cc'
+                      code:
+                        type: string
+                        example: 'Bad Request'
+                      description:
+                        type: string
+                        example: 'Invalid input parameters'
+                  status_code:
+                    type: integer
+                    example: 400
+                  type:
+                    type: string
+                    example: 'business_error'
+                  reason:
+                    type: string
+                    example: 'Invalid request parameters'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                        example: '25257782-9de3-4c2d-937a-3c56c02a24cc'
+                      code:
+                        type: string
+                        example: 'Unauthorized'
+                      description:
+                        type: string
+                        example: 'Authentication failed'
+                  status_code:
+                    type: integer
+                    example: 401
+                  type:
+                    type: string
+                    example: 'business_error'
+                  reason:
+                    type: string
+                    example: 'Access denied, check your credentials'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                        example: '25257782-9de3-4c2d-937a-3c56c02a24cc'
+                      code:
+                        type: string
+                        example: 'Forbidden'
+                      description:
+                        type: string
+                        example: 'Access forbidden'
+                  status_code:
+                    type: integer
+                    example: 403
+                  type:
+                    type: string
+                    example: 'business_error'
+                  reason:
+                    type: string
+                    example: 'Insufficient permissions'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                        example: '25257782-9de3-4c2d-937a-3c56c02a24cc'
+                      code:
+                        type: string
+                        example: 'Not Found'
+                      description:
+                        type: string
+                        example: 'Resource not found'
+                  status_code:
+                    type: integer
+                    example: 404
+                  type:
+                    type: string
+                    example: 'business_error'
+                  reason:
+                    type: string
+                    example: 'Payment not found'
+        '429':
+          description: Too Many Requests
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                        example: '25257782-9de3-4c2d-937a-3c56c02a24cc'
+                      code:
+                        type: string
+                        example: 'Too Many Requests'
+                      description:
+                        type: string
+                        example: 'Rate limit exceeded'
+                  status_code:
+                    type: integer
+                    example: 429
+                  type:
+                    type: string
+                    example: 'business_error'
+                  reason:
+                    type: string
+                    example: 'Too many requests, please try again later'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                        example: '25257782-9de3-4c2d-937a-3c56c02a24cc'
+                      code:
+                        type: string
+                        example: 'Internal Server Error'
+                      description:
+                        type: string
+                        example: 'An internal error occurred while processing the request'
+                  status_code:
+                    type: integer
+                    example: 500
+                  type:
+                    type: string
+                    example: 'business_error'
+                  reason:
+                    type: string
+                    example: 'Internal server error'
+
+  /order/checkout:
+    post:
+      tags:
+        - Order
+      summary: Create a new order
+      description: 'Creates a new order with the provided details including order items.'
+      parameters:
+        - in: header
+          name: Authorization
+          required: true
+          schema:
+            type: string
+          description: (Mandatory) Authorization token for authentication.
+        - in: header
+          name: X-Request-ID
+          required: false
+          schema:
+            type: string
+          description: (Optional) request ID for tracking the request. Strongly recommended to provide it. Always use the X-Request-ID already propagated in request headers. If not provided, a random UUID will be generated and used for tracking. 
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                order:
+                  type: object
+                  properties:
+                    order_number:
+                      type: string
+                      example: 'ord-110'
+                payment:
+                  type: object
+                  properties:
+                    type:
+                      type: string
+                      example: 'credit_card'
+                    payment_detail:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          currency:
+                            type: string
+                            example: 'BRL'
+                          amount:
+                            type: number
+                            example: 100.00
+                          credit_card:
+                            type: object
+                            properties:
+                              pan:
+                                type: string
+                                example: '2222.2222.2222.2222'
+                              holder:
+                                type: string
+                                example: 'juliana'
+                              password:
+                                type: string
+                                example: 'qwerty'
+                              cvv:
+                                type: string
+                                example: '123'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    type: string
+                    example: 'Checkout added successfully'
+                  checkout:
+                    type: object
+                    properties:
+                      order:
+                        type: object
+                        properties:
+                          id:
+                            type: integer
+                            example: 10
+                          order_number:
+                            type: string
+                            example: 'ord-110'
+                          transaction_id:
+                            type: string
+                            example: 'txn:ord-110'
+                          order_date:
+                            type: string
+                            format: date-time
+                            example: '2026-04-29T00:00:00Z'
+                          status:
+                            type: string
+                            example: 'checkout:pending'
+                          currency:
+                            type: string
+                            example: 'BRL'
+                          amount:
+                            type: number
+                            example: 240
+                          customer_id:
+                            type: string
+                            example: 'juliana'
+                          order_item:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                id:
+                                  type: integer
+                                  example: 16
+                                fk_order_id:
+                                  type: integer
+                                  example: 10
+                                product:
+                                  type: object
+                                  properties:
+                                    id:
+                                      type: integer
+                                      example: 1
+                                status:
+                                  type: string
+                                  example: 'checkout:pending'
+                                quantity:
+                                  type: integer
+                                  example: 2
+                                currency:
+                                  type: string
+                                  example: 'BRL'
+                                amount:
+                                  type: number
+                                  example: 202
+                                created_at:
+                                  type: string
+                                  format: date-time
+                                  example: '2026-09-06T17:09:52.531474-03:00'
+                                updated_at:
+                                  type: string
+                                  format: date-time
+                                  example: '2026-09-13T03:03:43.515754698Z'
+                          created_at:
+                            type: string
+                            format: date-time
+                            example: '2026-09-06T17:09:52.531474-03:00'
+                          updated_at:
+                            type: string
+                            format: date-time
+                            example: '2026-09-13T03:03:43.515754698Z'
+                      payment:
+                        type: object
+                        properties:
+                          id:
+                            type: integer
+                            example: 43
+                          payment_number:
+                            type: string
+                            example: 'pay:ord-110'
+                          transaction_id:
+                            type: string
+                            example: 'txn:ord-110'
+                          type:
+                            type: string
+                            example: 'credit_card'
+                          payment_date:
+                            type: string
+                            format: date-time
+                            example: '0001-01-01T00:00:00Z'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                        example: '25257782-9de3-4c2d-937a-3c56c02a24cc'
+                      code:
+                        type: string
+                        example: 'Bad Request'
+                      description:
+                        type: string
+                        example: 'Invalid input parameters'
+                  status_code:
+                    type: integer
+                    example: 400
+                  type:
+                    type: string
+                    example: 'business_error'
+                  reason:
+                    type: string
+                    example: 'Invalid request parameters'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                        example: '25257782-9de3-4c2d-937a-3c56c02a24cc'
+                      code:
+                        type: string
+                        example: 'Unauthorized'
+                      description:
+                        type: string
+                        example: 'Authentication failed'
+                  status_code:
+                    type: integer
+                    example: 401
+                  type:
+                    type: string
+                    example: 'business_error'
+                  reason:
+                    type: string
+                    example: 'Access denied, check your credentials'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                        example: '25257782-9de3-4c2d-937a-3c56c02a24cc'
+                      code:
+                        type: string
+                        example: 'Forbidden'
+                      description:
+                        type: string
+                        example: 'Access forbidden'
+                  status_code:
+                    type: integer
+                    example: 403
+                  type:
+                    type: string
+                    example: 'business_error'
+                  reason:
+                    type: string
+                    example: 'Insufficient permissions'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                        example: '25257782-9de3-4c2d-937a-3c56c02a24cc'
+                      code:
+                        type: string
+                        example: 'Not Found'
+                      description:
+                        type: string
+                        example: 'Resource not found'
+                  status_code:
+                    type: integer
+                    example: 404
+                  type:
+                    type: string
+                    example: 'business_error'
+                  reason:
+                    type: string
+                    example: 'Payment not found'
+        '429':
+          description: Too Many Requests
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                        example: '25257782-9de3-4c2d-937a-3c56c02a24cc'
+                      code:
+                        type: string
+                        example: 'Too Many Requests'
+                      description:
+                        type: string
+                        example: 'Rate limit exceeded'
+                  status_code:
+                    type: integer
+                    example: 429
+                  type:
+                    type: string
+                    example: 'business_error'
+                  reason:
+                    type: string
+                    example: 'Too many requests, please try again later'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                        example: '25257782-9de3-4c2d-937a-3c56c02a24cc'
+                      code:
+                        type: string
+                        example: 'Internal Server Error'
+                      description:
+                        type: string
+                        example: 'An internal error occurred while processing the request'
+                  status_code:
+                    type: integer
+                    example: 500
+                  type:
+                    type: string
+                    example: 'business_error'
+                  reason:
+                    type: string
+                    example: 'Internal server error'

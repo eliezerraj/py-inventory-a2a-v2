@@ -11,3 +11,6 @@ class MissingTokenError(AppError):
 
 class ForbiddenError(AppError):
     pass
+
+class MCPAuthorizationProtectionRequired(AppError):
+    pass

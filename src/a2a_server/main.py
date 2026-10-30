@@ -34,6 +34,7 @@ from src.a2a_server.common.exceptions.a2a_error import (
     A2ARouterError,
 )
 
+from src.a2a_server.infrastructure.adapter.http.http_client import HttpAdapter
 from src.a2a_server.a2a.message_model import A2ARequest, A2AEnvelope, A2AResponse
 from src.a2a_server.a2a.server import A2AServer
 from src.a2a_server.application.orchestration.orchestrator import Orchestrator
@@ -41,6 +42,7 @@ from src.a2a_server.infrastructure.telemetry.tracer import setup_tracer
 from src.a2a_server.a2a.agent_card import AGENT_CARD as agent
 from src.a2a_server.infrastructure.middleware.middleware import RequestContextMiddleware
 from src.a2a_server.config.logger import REQUEST_ID_CTX
+from src.a2a_server.infrastructure.oauth.oauth import OAuthClient
 
 from opentelemetry import trace
 from opentelemetry.trace.status import Status, StatusCode
@@ -50,6 +52,9 @@ from src.a2a_server.config.settings import settings
 
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 from starlette.responses import JSONResponse
+
+from src.a2a_server.infrastructure.oauth.cimd.client_metadata import CLIENT_METADATA
+from src.a2a_server.infrastructure.oauth.jwks_metadata import JWKS_METADATA
 
 # Setup logging
 setup_logger(settings.LOG_LEVEL, 
@@ -216,15 +221,46 @@ def create_error_response(exception: Exception, status_code: int = None) -> dict
         "message": exception.message if hasattr(exception, 'message') else str(exception)
     }
 
+
+# ---------------------------------
+# Initialize Http client
+# ---------------------------------
+http_adapter = HttpAdapter()
+
 # ---------------------------------
 # Application Metadata
 # ---------------------------------
-orchestrator = Orchestrator()
+orchestrator = Orchestrator(http_adapter)
 a2AServer = A2AServer(settings, orchestrator)
 
 # ---------------------------------
 # API Endpoints
 # ---------------------------------
+@app.get("/v1/client_assertion")
+def client_assertion():
+    with tracer.start_as_current_span("main.client_assertion") as span:
+        oauth_client = OAuthClient()
+        client_assertion = oauth_client.create_client_assertion()
+        span.set_status(Status(StatusCode.OK))
+        return JSONResponse(
+            content={"client_assertion": client_assertion}
+        )
+
+@app.get("/oauth/client-metadata.json")
+def client_metadata():
+    return JSONResponse(
+        content=CLIENT_METADATA
+    )
+
+@app.get("/.well-known/jwks.json")
+def jwks():
+    with tracer.start_as_current_span("main.well-known.jwks") as span:
+        jwks=JWKS_METADATA
+        span.set_status(Status(StatusCode.OK)) 
+        return JSONResponse(
+            content=jwks
+        )
+
 @app.get("/health")
 def health():
     return Response(

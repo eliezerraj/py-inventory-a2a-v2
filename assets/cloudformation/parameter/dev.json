@@ -1,0 +1,26 @@
+[
+  {
+    "ParameterKey": "Env",
+    "ParameterValue": "dev"
+  },
+  {
+    "ParameterKey": "RepositoryName",
+    "ParameterValue": "py-inventory-a2a-v2"
+  },
+  {
+    "ParameterKey": "Namespace",
+    "ParameterValue": "test-a"
+  },
+  {
+    "ParameterKey": "ClusterName",
+    "ParameterValue": "arch-eks-01-02"
+  },
+  {
+    "ParameterKey": "ServiceAccountName",
+    "ParameterValue": "sa-py-inventory-a2a-v2"
+  },
+  {
+    "ParameterKey": "RoleName",
+    "ParameterValue": "PyInventoryA2AV2"
+  }
+]

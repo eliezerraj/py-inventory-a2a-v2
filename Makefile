@@ -16,7 +16,12 @@ export SESSION_TIMEOUT=700
 export AUTHORIZATION_DRY_RUN=False
 export AUTHORIZATION_JWKS_URL=http://localhost:7100/v1/.well-known/jwks.json
 export AUTHORIZATION_ISSUER=go-authorizer-v2
-export AUTHORIZATION_AUDIENCE=go-ecommerce
+export AUTHORIZATION_AUDIENCE=py-inventory-a2a-v2
+
+export AUTHORIZATION_CLIENT_ID_ASSERTION=http://py-inventory-a2a-v2:7601/oauth/client-metadata.json
+export AUTHORIZATION_URL_ASSERTION=http://localhost:7100
+export CURRENT_KID=go-inventory-a2a-key-2026-10-26
+export MCP_PROTECTED_RESOURCE=http://py-inventory-a2a-v2:7601
 
 export METRICS_HOST=0.0.0.0
 export METRICS_PORT=8601
@@ -28,7 +33,9 @@ export A2A_SERVER_STATISTIC_A2A_URL=http://127.0.0.1:7600
 export LOG_LEVEL=INFO
 export OTEL_EXPORTER_OTLP_ENDPOINT=localhost:4317
 export OTEL_STDOUT_LOG_GROUP=False
-export LOG_GROUP=/mnt/c/Eliezer/log/py-inventory-a2a-v2.log
+export LOG_GROUP=export MCP_SERVER_INVENTORY_URL=http://127.0.0.1:7500/mcp
+export MCP_SERVER_ORDER_URL=http://127.0.0.1:7501/mcp
+export A2A_SERVER_STATISTIC_A2A_URL=http://127.0.0.1:7600
 
 # Default target
 all: env activate run

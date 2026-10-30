@@ -66,10 +66,6 @@ class CedarVerifier:
                 "context": context or {},
             }
 
-            print("==============================")
-            print("Request: %s", request)
-            print("==============================")
-
             entities = [
                 {
                     "uid": {
@@ -81,6 +77,7 @@ class CedarVerifier:
                     "attrs": {
                         "client_id": security.subject,
                         "scopes": list(security.scopes),
+                        "roles": list(security.roles),
                     },
                     "parents": [],
                 },
@@ -95,10 +92,7 @@ class CedarVerifier:
                     "parents": [],
                 },
             ]
-            print("==============================")
-            print("Entities: %s", entities)
-            print("==============================")
-            
+
             result = is_authorized(
                 request=request,
                 policies=self.policy_set,
@@ -106,9 +100,11 @@ class CedarVerifier:
             )
 
             print("==============================")
+            print("Request: %s", request)
+            print("Entities: %s", entities)
             print("Authorization result: %s", result.allowed)
             print("==============================")
 
             if not result.allowed:
-                logger.warning("Authorization denied for action=%s, resource_type=%s, resource_id=%s",action,resource_type,resource_id)
-                raise ForbiddenError(status_code=403, error="FORBIDDEN", error_type="ForbiddenError", message=f"Authorization denied: {action} {resource_type=} {resource_id=}")
+                logger.warning("Authorization denied by Cedar for action=%s, resource_type=%s, resource_id=%s",action,resource_type,resource_id)
+                raise ForbiddenError(status_code=403, error="FORBIDDEN", error_type="ForbiddenError", message=f"Authorization denied by Cedar: {action} {resource_type=} {resource_id=}")
