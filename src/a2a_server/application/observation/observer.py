@@ -39,7 +39,6 @@ class Observer:
                         "product": product["sku"]
                     }
                 elif status_code == 401: # Handle captured error responses based on status code for CIMD workflow
-                    print("2... ============== Starting Unauthorized Protection FLOW OIDC/CIMD ==================")
                     logger.warning("STARTING Unauthorized Protection FLOW for product: %s", product["sku"])
 
                     # Extract www-authenticate header for OIDC/CIMD flow

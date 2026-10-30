@@ -33,7 +33,9 @@ export A2A_SERVER_STATISTIC_A2A_URL=http://127.0.0.1:7600
 export LOG_LEVEL=INFO
 export OTEL_EXPORTER_OTLP_ENDPOINT=localhost:4317
 export OTEL_STDOUT_LOG_GROUP=False
-export LOG_GROUP=/mnt/c/Eliezer/log/py-inventory-a2a-v2.log
+export LOG_GROUP=export MCP_SERVER_INVENTORY_URL=http://127.0.0.1:7500/mcp
+export MCP_SERVER_ORDER_URL=http://127.0.0.1:7501/mcp
+export A2A_SERVER_STATISTIC_A2A_URL=http://127.0.0.1:7600
 
 # Default target
 all: env activate run

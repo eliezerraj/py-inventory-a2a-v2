@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: &app-name svc-py-inventory-a2a-v2
+  namespace: test-a
+  labels:
+    app: *app-name
+spec:
+  type: ClusterIP
+  ports:
+  - port: 7601
+    targetPort: 7601
+    protocol: TCP
+    name: http
+  - port: 8601
+    targetPort: 8601
+    protocol: TCP
+    name: metrics
+  selector:
+    app: py-inventory-a2a-v2
