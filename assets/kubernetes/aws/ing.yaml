@@ -5,7 +5,6 @@ metadata:
   namespace: test-a
   annotations:
     nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
-    nginx.ingress.kubernetes.io/rewrite-target: /
     nginx.ingress.kubernetes.io/ssl-redirect: "false"
     nginx.ingress.kubernetes.io/default-backend: "svc-py-inventory-a2a-v2"
     nginx.ingress.kubernetes.io/proxy-body-timeout: "300"
@@ -25,7 +24,7 @@ spec:
               name: svc-py-inventory-a2a-v2
               port:
                 number: 7601
-        - path: /
+        - path: /metrics
           pathType: Prefix
           backend:
             service:

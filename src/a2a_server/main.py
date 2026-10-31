@@ -101,12 +101,12 @@ app = FastAPI(
 # ---------------------------------
 app.add_middleware(
     TrustedHostMiddleware,
-    allowed_hosts=["py-inventory-a2a-v2",
-                   "localhost",
-                   "127.0.0.1",
+    allowed_hosts=[ "py-inventory-a2a-v2",
+                    "localhost",
+                    "127.0.0.1",
                     "prometheus",
-                   "host.docker.internal",
-                   "*.a2a-v2"]
+                    "*",
+                    "host.docker.internal"]
 )
 
 app.add_middleware(RequestContextMiddleware)
