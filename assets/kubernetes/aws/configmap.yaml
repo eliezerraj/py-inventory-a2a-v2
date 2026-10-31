@@ -6,12 +6,11 @@ metadata:
   labels:
     app: *app-name
 data:
-
   APP_NAME: "py-inventory-a2a-v2.eks-01-02"
   VERSION: "1.0"
   ACCOUNT: "aws:908671954593"
-  HOST: "0.0.0.0"
   PORT: "7601"
+  #HOST: "0.0.0.0"
   SESSION_TIMEOUT: "700"
   
   LIMIT: "7"
@@ -20,10 +19,10 @@ data:
 
   URL_AGENT: "https://py-inventory-a2a-v2.architecture.xpto.io"
 
-  METRICS_HOST: "0.0.0.0"
+  #METRICS_HOST: "0.0.0.0"
   METRICS_PORT: "8601"
 
-  AUTHORIZATION_DRY_RUN: "False"
+  AUTHORIZATION_DRY_RUN: "True"
   AUTHORIZATION_JWKS_URL: "https://go-authorizer-v2.architecture.xpto.io/v1/.well-known/jwks.json"
   AUTHORIZATION_ISSUER: "go-authorizer-v2"
   AUTHORIZATION_AUDIENCE: "py-inventory-a2a-v2"
