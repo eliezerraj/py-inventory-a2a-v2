@@ -16,23 +16,23 @@ data:
   SCALE_CHOICE: "MEDIUM"
   ANCHOR_CHOICE: "BALANCED"
 
-  URL_AGENT: "https://py-inventory-a2a-v2.architecture.caradhras.io"
+  URL_AGENT: "https://py-inventory-a2a-v2.architecture.xpto.io"
 
   METRICS_PORT: "8601"
 
   AUTHORIZATION_DRY_RUN: "True"
-  AUTHORIZATION_JWKS_URL: "https://go-authorizer-v2.architecture.caradhras.io/v1/.well-known/jwks.json"
+  AUTHORIZATION_JWKS_URL: "https://go-authorizer-v2.architecture.xpto.io/v1/.well-known/jwks.json"
   AUTHORIZATION_ISSUER: "go-authorizer-v2"
   AUTHORIZATION_AUDIENCE: "py-inventory-a2a-v2"
 
-  AUTHORIZATION_CLIENT_ID_ASSERTION: "http://py-inventory-a2a-v2.architecture.caradhras.io/oauth/client-metadata.json"
-  AUTHORIZATION_URL_ASSERTION: "https://go-authorizer-v2.architecture.caradhras.io"
+  AUTHORIZATION_CLIENT_ID_ASSERTION: "http://py-inventory-a2a-v2.architecture.xpto.io/oauth/client-metadata.json"
+  AUTHORIZATION_URL_ASSERTION: "https://go-authorizer-v2.architecture.xpto.io"
   CURRENT_KID: "go-inventory-a2a-key-2026-10-26"
-  MCP_PROTECTED_RESOURCE: "http://py-inventory-a2a-v2.architecture.caradhras.io"
+  MCP_PROTECTED_RESOURCE: "http://py-inventory-a2a-v2.architecture.xpto.io"
 
-  MCP_SERVER_INVENTORY_URL: "https://py-mcp-inventory-v2.architecture.caradhras.io/mcp"
-  MCP_SERVER_ORDER_URL: "https://py-mcp-order-v2.architecture.caradhras.io/mcp"
-  A2A_SERVER_STATISTIC_A2A_URL: "https://py-statistic-a2a-v2.architecturedev.caradhras.io"
+  MCP_SERVER_INVENTORY_URL: "https://py-mcp-inventory-v2.architecture.xpto.io/mcp"
+  MCP_SERVER_ORDER_URL: "https://py-mcp-order-v2.architecture.xpto.io/mcp"
+  A2A_SERVER_STATISTIC_A2A_URL: "https://py-statistic-a2a-v2.architecturedev.xpto.io"
 
   METRICS_LOG_LEVEL: "INFO"
   OTEL_EXPORTER_OTLP_ENDPOINT: "arch-eks-01-02-otel-collector.default.svc.cluster.local:4317"
