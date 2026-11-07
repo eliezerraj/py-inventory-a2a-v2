@@ -1,5 +1,4 @@
 import logging
-import os
 import httpx2
 import json
 
@@ -11,8 +10,7 @@ from mcp import ClientSession
 
 from mcp.client.streamable_http import streamable_http_client
 
-from src.a2a_server.domain.dto.context import SecurityContext
-from src.a2a_server.infrastructure.context.request_context import (
+from src.a2a_server.domain.model.context import (
     get_security_context,
 )
 

@@ -23,6 +23,14 @@ class Settings:
         self.AUTHORIZATION_JWKS_URL = os.getenv("AUTHORIZATION_JWKS_URL")
         self.AUTHORIZATION_ISSUER = os.getenv("AUTHORIZATION_ISSUER")
         self.AUTHORIZATION_AUDIENCE = os.getenv("AUTHORIZATION_AUDIENCE")
+        allowed_hosts = os.getenv("ALLOWED_HOSTS", "*")
+        self.ALLOWED_HOSTS = [
+            host.strip().removesuffix(":*")
+            for host in allowed_hosts.split(",")
+        ]
+        if any(not host for host in self.ALLOWED_HOSTS):
+            raise ValueError("ALLOWED_HOSTS must contain non-empty comma-separated hostnames")
+                
         self.MCP_PROTECTED_RESOURCE = os.getenv("MCP_PROTECTED_RESOURCE")
         
         self.AUTHORIZATION_CLIENT_ID_ASSERTION = os.getenv("AUTHORIZATION_CLIENT_ID_ASSERTION")

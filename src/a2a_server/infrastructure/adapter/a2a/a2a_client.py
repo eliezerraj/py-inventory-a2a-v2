@@ -6,28 +6,24 @@ from a2a.client import A2ACardResolver, ClientConfig, create_client
 from a2a.helpers import new_text_message
 from a2a.types import Role, SendMessageRequest
 
-from a2a.helpers import new_text_message
-from a2a.types import Role, SendMessageRequest
 from a2a.client import A2AClientError, A2AClientTimeoutError
 
-from opentelemetry import trace, propagate
-from packaging.version import InvalidVersion, Version
+from opentelemetry import trace
 
 from src.a2a_server.config.settings import settings
 
 from typing import Any
 from dataclasses import dataclass
 
-from src.a2a_server.domain.dto.context import SecurityContext
-from src.a2a_server.infrastructure.context.request_context import (
+from src.a2a_server.domain.model.context import (
     get_security_context,
 )
 
-from src.a2a_server.common.exceptions.auth_error import (
+from src.a2a_server.domain.exceptions import (
     InvalidAccessTokenError,
     ForbiddenError,
 )
-from src.a2a_server.common.exceptions.app_error import AppError
+from src.a2a_server.domain.external.error_response import AppError
 
 #---------------------------------
 # Configure logging and tracer

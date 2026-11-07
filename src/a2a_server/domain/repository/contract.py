@@ -1,8 +1,8 @@
 from abc import ABC, abstractmethod
 
-from typing import List, Optional
+from typing import List
 
-from src.a2a_server.domain.dto.model import Trajectory, PlaceCell
+from src.a2a_server.domain.model.model import Trajectory, PlaceCell
 
 class InventoryRepositoryContract(ABC):
 

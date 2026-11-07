@@ -16,6 +16,13 @@ source ../../.venv/bin/activate
 pip install -e .
 ```
 
+### Allowed hosts
+
+Set `ALLOWED_HOSTS` to a comma-separated list of hostnames, such as
+`localhost,127.0.0.1,py-inventory-a2a-v2`. The optional `:*` suffix is accepted
+for compatibility; host validation ignores ports. If unset, all hosts are
+allowed (`*`), as before.
+
 ```
 OBSERVE : get_product(sku)
    ↓

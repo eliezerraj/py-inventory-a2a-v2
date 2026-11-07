@@ -3,26 +3,26 @@ import numpy as np
 import json
 import src.a2a_server.infrastructure.adapter.a2a.a2a_client as a2a_client
 
-from src.a2a_server.domain.dto.model import ProductState                
+from src.a2a_server.domain.model.model import ProductState                
 from src.a2a_server.application.action.action import Action
-from src.a2a_server.infrastructure.oauth.oauth import OAuthClient
+from src.a2a_server.infrastructure.security.oauth import OAuthClient
 from src.a2a_server.application.observation.observer import Observer
 from src.a2a_server.application.state.builder import Builder
 from src.a2a_server.application.reasoning.decider import Decider
 from src.a2a_server.config.settings import settings
-from src.a2a_server.domain.dto.context import SecurityContext
 from src.a2a_server.infrastructure.adapter.a2a.a2a_client import A2aRequest
-from src.a2a_server.domain.dto.model import Statistics
+from src.a2a_server.domain.model.model import Statistics
 
 from opentelemetry import trace
 
-from src.a2a_server.infrastructure.context.request_context import (
+from src.a2a_server.domain.model.context import (
+    SecurityContext,
     get_security_context,
     reset_security_context,
     set_security_context,
 )
 
-from src.a2a_server.common.exceptions.auth_error import (
+from src.a2a_server.domain.exceptions import (
     InvalidAccessTokenError,
     ForbiddenError,
 )
