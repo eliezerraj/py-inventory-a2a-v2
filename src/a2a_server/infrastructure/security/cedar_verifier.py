@@ -6,14 +6,10 @@ from cedarpy import (
     is_authorized,
 )
 
-from src.a2a_server.domain.dto.context import SecurityContext
+from src.a2a_server.domain.model.context import get_security_context
 
-from src.a2a_server.common.exceptions.auth_error import (
+from src.a2a_server.domain.exceptions import (
     ForbiddenError,
-)
-
-from src.a2a_server.infrastructure.context.request_context import (
-    get_security_context,
 )
 
 from opentelemetry import trace
@@ -30,8 +26,7 @@ class CedarVerifier:
         logger.info("Initializing CedarVerifier")
 
         try:
-            base_path = Path(__file__).parent.parent.parent.parent
-            file_path = base_path / "a2a_server/infrastructure/auth/policy/policy.cedar"
+            file_path = Path(__file__).parent / "policy" / "policy.cedar"
                 
             policy_text = Path(file_path).read_text(encoding="utf-8")
             self.policy_set = PolicySet.from_str(policy_text)

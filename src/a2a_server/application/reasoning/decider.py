@@ -4,7 +4,7 @@ from opentelemetry import trace
 
 from src.a2a_server.application.reasoning.gridcell import GridCellModule
 from src.a2a_server.infrastructure.repository.inventory_repository import InventoryRepository
-from src.a2a_server.domain.dto.model import Decision, ProductState
+from src.a2a_server.domain.model.model import Decision, ProductState
 
 from src.a2a_server.config.settings import settings
 

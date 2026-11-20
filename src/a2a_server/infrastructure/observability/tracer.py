@@ -6,7 +6,7 @@ from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from opentelemetry.sdk.metrics import MeterProvider
 from opentelemetry.instrumentation.aiohttp_client import AioHttpClientInstrumentor
 from opentelemetry.instrumentation.logging import LoggingInstrumentor
-from src.a2a_server.infrastructure.middleware.middleware import FilteringSpanExporter
+from src.a2a_server.transport.http.middleware.middleware import FilteringSpanExporter
 
 def setup_tracer(APP_NAME: str,
                  OTEL_EXPORTER_OTLP_ENDPOINT: str) -> None:

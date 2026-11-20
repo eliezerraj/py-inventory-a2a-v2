@@ -19,9 +19,9 @@ class OAuthClient:
     
     def __init__(self):
         try:
-            base_path = Path(__file__).parent.parent.parent.parent
-            private_key_path = base_path / "a2a_server/infrastructure/oauth/keys/private_key.pem"
-            public_key_path = base_path / "a2a_server/infrastructure/oauth/keys/public_key.pem"
+            keys_path = Path(__file__).parent / "keys"
+            private_key_path = keys_path / "private_key.pem"
+            public_key_path = keys_path / "public_key.pem"
 
             self.private_key = open(private_key_path).read()
             self.public_key = open(public_key_path).read()

@@ -3,7 +3,7 @@ import logging
 from typing import Any, Optional, Dict
 
 from opentelemetry import trace, propagate
-from src.a2a_server.infrastructure.context.request_context import (
+from src.a2a_server.domain.model.context import (
     get_security_context,
 )
 

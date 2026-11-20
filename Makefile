@@ -13,17 +13,17 @@ export ANCHOR_CHOICE=BALANCED
 export URL_AGENT=http://127.0.0.1:7601
 export SESSION_TIMEOUT=700
 
-export AUTHORIZATION_DRY_RUN=False
+export AUTHORIZATION_DRY_RUN=True
 export AUTHORIZATION_JWKS_URL=http://localhost:7100/v1/.well-known/jwks.json
 export AUTHORIZATION_ISSUER=go-authorizer-v2
 export AUTHORIZATION_AUDIENCE=py-inventory-a2a-v2
+export ALLOWED_HOSTS=localhost:*,127.0.0.1:*,py-mcp-inventory-v2:*
 
-export AUTHORIZATION_CLIENT_ID_ASSERTION=http://py-inventory-a2a-v2:7601/oauth/client-metadata.json
+export AUTHORIZATION_CLIENT_ID_ASSERTION=http://localhost:7601/oauth/client-metadata.json
 export AUTHORIZATION_URL_ASSERTION=http://localhost:7100
 export CURRENT_KID=go-inventory-a2a-key-2026-10-26
-export MCP_PROTECTED_RESOURCE=http://py-inventory-a2a-v2:7601
+export A2A_PROTECTED_RESOURCE=http://localhost:7601
 
-export METRICS_HOST=0.0.0.0
 export METRICS_PORT=8601
 
 export MCP_SERVER_INVENTORY_URL=http://127.0.0.1:7500/mcp
@@ -33,9 +33,7 @@ export A2A_SERVER_STATISTIC_A2A_URL=http://127.0.0.1:7600
 export LOG_LEVEL=INFO
 export OTEL_EXPORTER_OTLP_ENDPOINT=localhost:4317
 export OTEL_STDOUT_LOG_GROUP=False
-export LOG_GROUP=export MCP_SERVER_INVENTORY_URL=http://127.0.0.1:7500/mcp
-export MCP_SERVER_ORDER_URL=http://127.0.0.1:7501/mcp
-export A2A_SERVER_STATISTIC_A2A_URL=http://127.0.0.1:7600
+export LOG_GROUP=py-inventory-a2a-v2
 
 # Default target
 all: env activate run
@@ -57,7 +55,6 @@ env:
 	@echo "OTEL_EXPORTER_OTLP_ENDPOINT=$(OTEL_EXPORTER_OTLP_ENDPOINT)"
 	@echo "OTEL_STDOUT_LOG_GROUP=$(OTEL_STDOUT_LOG_GROUP)"
 	@echo "LOG_GROUP=$(LOG_GROUP)"
-	@echo "METRICS_HOST=$(METRICS_HOST)"
 	@echo "METRICS_PORT=$(METRICS_PORT)"
 activate:
 	@echo "Activate venv..."

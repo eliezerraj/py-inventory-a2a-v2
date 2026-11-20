@@ -2,25 +2,24 @@ import logging
 import uuid
 
 from opentelemetry import trace
-from opentelemetry.sdk.trace import SpanProcessor
 from opentelemetry.sdk.trace.export import SpanExporter, SpanExportResult
 from opentelemetry.baggage import set_baggage
 
 from src.a2a_server.config.settings import settings
-from src.a2a_server.config.logger import REQUEST_ID_CTX
+from src.a2a_server.infrastructure.observability.logger import REQUEST_ID_CTX
 
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 
-from src.a2a_server.domain.dto.context import SecurityContext
-from src.a2a_server.infrastructure.context.request_context import (
+from src.a2a_server.domain.model.context import (
+    SecurityContext,
     set_security_context,
     reset_security_context,
 )
-from src.a2a_server.infrastructure.auth.token_verifier import JwtTokenVerifier
+from src.a2a_server.infrastructure.security.token_verifier import JwtTokenVerifier
 
-from src.a2a_server.common.exceptions.auth_error import (
+from src.a2a_server.domain.exceptions import (
     InvalidAccessTokenError,
     MissingTokenError,
 )
@@ -77,7 +76,7 @@ def handle_auth_exception(exception: Exception, span, request_id: str, log_level
         status_code=status_code,
         content=error_response,
         headers={"x-request-id": request_id,
-                 "WWW-Authenticate": f"Bearer resource_metadata={settings.MCP_PROTECTED_RESOURCE}/.well-known/oauth-protected-resource" }
+                 "WWW-Authenticate": f"Bearer resource_metadata={settings.A2A_PROTECTED_RESOURCE}/.well-known/oauth-protected-resource" }
     )
 
 class FilteringSpanExporter(SpanExporter):

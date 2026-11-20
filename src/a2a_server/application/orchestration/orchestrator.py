@@ -3,26 +3,26 @@ import numpy as np
 import json
 import src.a2a_server.infrastructure.adapter.a2a.a2a_client as a2a_client
 
-from src.a2a_server.domain.dto.model import ProductState                
+from src.a2a_server.domain.model.model import ProductState                
 from src.a2a_server.application.action.action import Action
-from src.a2a_server.infrastructure.oauth.oauth import OAuthClient
+from src.a2a_server.infrastructure.security.oauth import OAuthClient
 from src.a2a_server.application.observation.observer import Observer
 from src.a2a_server.application.state.builder import Builder
 from src.a2a_server.application.reasoning.decider import Decider
 from src.a2a_server.config.settings import settings
-from src.a2a_server.domain.dto.context import SecurityContext
 from src.a2a_server.infrastructure.adapter.a2a.a2a_client import A2aRequest
-from src.a2a_server.domain.dto.model import Statistics
+from src.a2a_server.domain.model.model import Statistics
 
 from opentelemetry import trace
 
-from src.a2a_server.infrastructure.context.request_context import (
+from src.a2a_server.domain.model.context import (
+    SecurityContext,
     get_security_context,
     reset_security_context,
     set_security_context,
 )
 
-from src.a2a_server.common.exceptions.auth_error import (
+from src.a2a_server.domain.exceptions import (
     InvalidAccessTokenError,
     ForbiddenError,
 )
@@ -132,6 +132,7 @@ class Orchestrator:
             product = payload["product"]
             try:
                 response_order_time_series = await self.buildstate.build_order_series_state(product)
+                
                 status_code = response_order_time_series.get("status_code")
                 
                 if status_code == 401:
@@ -161,11 +162,48 @@ class Orchestrator:
                 }
 
             print(" ****************** STEP 2 a2a_adapter availables ****************** ")  
-            # Extract amounts and counts from the time series data            
-            price = response_order_time_series.get("time_series_order_items", {}).get("product", {}).get("price", {}).get("amount", 0)
-            lead_time = response_order_time_series.get("time_series_order_items", {}).get("product", {}).get("lead_time", 0)
-            available = response_order_time_series.get("time_series_order_items", {}).get("product", {}).get("inventory", {}).get("available", 0)
-            sold = response_order_time_series.get("time_series_order_items", {}).get("product", {}).get("inventory", {}).get("sold", 0)
+            # Extract and normalize numeric values from response_order_time_series
+            product_data = (
+                response_order_time_series
+                .get("time_series_order_items", {})
+                .get("product", {})
+            )
+            price_data = product_data.get("price", {})
+            inventory_data = product_data.get("inventory", {})
+
+            raw_price = price_data.get("amount", 0)
+            raw_lead_time = product_data.get("lead_time", 0)
+            raw_available = inventory_data.get("available", 0)
+            raw_sold = inventory_data.get("sold", 0)
+
+            print(" ---------------------------------------- ")
+            print(f" product_data {product_data}")
+            print(" ---------------------------------------- ")
+            
+            try:
+                price = float(raw_price or 0)
+            except (TypeError, ValueError):
+                price = 0.0
+
+            try:
+                lead_time = int(raw_lead_time or 0)
+            except (TypeError, ValueError):
+                lead_time = 0
+
+            try:
+                available = int(raw_available or 0)
+            except (TypeError, ValueError):
+                available = 0
+
+            try:
+                sold = int(raw_sold or 0)
+            except (TypeError, ValueError):
+                sold = 0
+
+            print(" ---------------------------------------- ")
+            print(f" response_order_time_series {response_order_time_series}")
+            print(f"Price: {price}, Lead Time: {lead_time}, Available: {available}, Sold: {sold}")
+            print(" ---------------------------------------- ")
 
             time_series_data = response_order_time_series.get("time_series_order_items", {}).get("time_series_data", [])
             if not time_series_data:
@@ -187,6 +225,10 @@ class Orchestrator:
                     "data": availables
                 }
             )
+
+            print(" ---------------------------------------- ")
+            print(f" availables {availables}")
+            print(" ---------------------------------------- ")
     
             try:
                 response_a2a = await self.a2a_adapter.call(request_a2a)
@@ -227,6 +269,9 @@ class Orchestrator:
             print(" ****************** STEP 3 a2a_adapter amount ****************** ")  
             
             amount = [item["sum_amount"] for item in time_series_data if item.get("sum_amount") is not None]
+            
+            print(f"Amount data: {amount}")
+            
             statistics_amount = None
             request_a2a = A2aRequest(
                 endpoint=settings.A2A_SERVER_STATISTIC_A2A_URL,
@@ -369,55 +414,3 @@ class Orchestrator:
             except Exception as e:
                 logger.error(f"Error in monitor: {e}")
                 return {"error": str(e)}
-
-    #async def deprecated_state(self, payload):
-    #    logger.info(f"state payload.: payload={payload}")
-    #    with tracer.start_as_current_span("orchestrator.state"):
-    #        
-    #        response = await self.buildstate.buildstate(payload["product"])
-    #        status_code = response.get("status_code")
-    #        
-    #        if status_code == 401:
-    #            await self._handle_unauthorized('py-mcp-order-v2')
-    #            return await self.buildstate.buildstate(payload["product"])
-    #        elif status_code is not None and status_code >= 400:
-    #            logger.warning("Forbidden response received.")
-    #                       
-    #        return response    
-                
-    #async def deprecated_premonitor(self, payload):
-    #    logger.info(f"monitor payload.: payload={payload}")
-    #    with tracer.start_as_current_span("orchestrator.monitor"):
-    #        try:
-    #            response_observed = await self.observer.observe(payload["product"])    
-    #            if response_observed.get("error"):
-    #                logger.warning(f"Observer error: {response_observed.get('message')}")
-    #                return {
-    #                    "error": True,
-    #                    "status_code": response_observed.get("status_code", 500),
-    #                    "message": response_observed.get("message")
-    #                }
-    #            response_state = await self.buildstate.buildstate(payload["product"])
-    #            product_state = ProductState()
-    #            product_state.inventory_level = (response_state.get("inventory") or {}).get("level")
-    #            product_state.amount_level = (response_state.get("amount") or {}).get("level")  
-    #            response_reasoning = await self.decider.reasoning(product_state)             
-    #            print("==============> Response reasoning:", response_reasoning.grid_metadata)            
-    #            if "current_state" not in response_reasoning.grid_metadata:
-    #                logger.error("Missing current_state in response_reasoning.grid_metadata")
-    #                return {"error": "Missing current_state in response_reasoning.grid_metadata, maybe the product not found"}      
-    #            current_state = np.array(response_reasoning.grid_metadata.get("current_state", [0.0, 0.0]))   
-    #            response_action = self.action.take_action(current_state=current_state)
-    #            logger.info(f"Obtained response_action: {response_action}")
-    #            response = {
-    #                "action": response_action,
-    #                "metadata": {
-    #                    "observed": response_observed,
-    #                    "state": response_state,
-    #                    "reasoning": response_reasoning
-    #                }
-    #            }
-    #            return response
-    #        except Exception as e:
-    #            logger.error(f"Error in monitor: {e}")
-    #            return {"error": str(e)}

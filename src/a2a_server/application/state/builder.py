@@ -1,22 +1,20 @@
 import logging
-import asyncio
 import json
 import numpy as np
 
 import src.a2a_server.infrastructure.adapter.mcp.mcp_client as mcp_client
 import src.a2a_server.infrastructure.adapter.a2a.a2a_client as a2a_client
 from src.a2a_server.infrastructure.adapter.a2a.a2a_client import A2aRequest
-from src.a2a_server.domain.dto.model import Statistics
+from src.a2a_server.domain.model.model import Statistics
 
 from src.a2a_server.config.settings import settings
 
 from opentelemetry import trace
 
-from src.a2a_server.common.exceptions.auth_error import (
+from src.a2a_server.domain.exceptions import (
     InvalidAccessTokenError,
     ForbiddenError,
 )
-from src.a2a_server.common.exceptions.app_error import AppError
 
 #---------------------------------
 # Configure logging and tracer

@@ -10,7 +10,6 @@ data:
   VERSION: "1.0"
   ACCOUNT: "aws:908671954593"
   PORT: "7601"
-  #HOST: "0.0.0.0"
   SESSION_TIMEOUT: "700"
   
   LIMIT: "7"
@@ -19,7 +18,6 @@ data:
 
   URL_AGENT: "https://py-inventory-a2a-v2.architecture.xpto.io"
 
-  #METRICS_HOST: "0.0.0.0"
   METRICS_PORT: "8601"
 
   AUTHORIZATION_DRY_RUN: "True"
@@ -30,7 +28,7 @@ data:
   AUTHORIZATION_CLIENT_ID_ASSERTION: "http://py-inventory-a2a-v2.architecture.xpto.io/oauth/client-metadata.json"
   AUTHORIZATION_URL_ASSERTION: "https://go-authorizer-v2.architecture.xpto.io"
   CURRENT_KID: "go-inventory-a2a-key-2026-10-26"
-  MCP_PROTECTED_RESOURCE: "http://py-inventory-a2a-v2.architecture.xpto.io"
+  A2A_PROTECTED_RESOURCE: "http://py-inventory-a2a-v2.architecture.xpto.io"
 
   MCP_SERVER_INVENTORY_URL: "https://py-mcp-inventory-v2.architecture.xpto.io/mcp"
   MCP_SERVER_ORDER_URL: "https://py-mcp-order-v2.architecture.xpto.io/mcp"
