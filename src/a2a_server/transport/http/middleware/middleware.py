@@ -76,7 +76,7 @@ def handle_auth_exception(exception: Exception, span, request_id: str, log_level
         status_code=status_code,
         content=error_response,
         headers={"x-request-id": request_id,
-                 "WWW-Authenticate": f"Bearer resource_metadata={settings.MCP_PROTECTED_RESOURCE}/.well-known/oauth-protected-resource" }
+                 "WWW-Authenticate": f"Bearer resource_metadata={settings.A2A_PROTECTED_RESOURCE}/.well-known/oauth-protected-resource" }
     )
 
 class FilteringSpanExporter(SpanExporter):

@@ -13,9 +13,9 @@ app = create_app()
 
 def run():
     try:
-        logger.info(f"Starting METRICS SERVER: {settings.METRICS_HOST}:{settings.METRICS_PORT}")
+        logger.info(f"Starting METRICS SERVER: {settings.HOST}:{settings.METRICS_PORT}")
         start_http_server(port=int(settings.METRICS_PORT), 
-                        addr=settings.METRICS_HOST
+                        addr=settings.HOST
         )
         
         logger.info(f"Starting SERVER: {settings.HOST}:{settings.PORT}")

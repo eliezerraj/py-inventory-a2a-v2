@@ -31,14 +31,13 @@ class Settings:
         if any(not host for host in self.ALLOWED_HOSTS):
             raise ValueError("ALLOWED_HOSTS must contain non-empty comma-separated hostnames")
                 
-        self.MCP_PROTECTED_RESOURCE = os.getenv("MCP_PROTECTED_RESOURCE")
+        self.A2A_PROTECTED_RESOURCE = os.getenv("A2A_PROTECTED_RESOURCE")
         
         self.AUTHORIZATION_CLIENT_ID_ASSERTION = os.getenv("AUTHORIZATION_CLIENT_ID_ASSERTION")
         self.AUTHORIZATION_URL_ASSERTION = os.getenv("AUTHORIZATION_URL_ASSERTION")
         self.CURRENT_KID = os.getenv("CURRENT_KID")
         
-        self.METRICS_HOST = os.getenv("HOST")
-        self.METRICS_PORT = int(os.getenv("METRICS_PORT", 8600))
+        self.METRICS_PORT = int(os.getenv("METRICS_PORT"))
         
         self.LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
         self.OTEL_EXPORTER_OTLP_ENDPOINT = os.getenv("OTEL_EXPORTER_OTLP_ENDPOINT")

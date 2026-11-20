@@ -66,7 +66,7 @@ tracer = trace.get_tracer(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info(" **** Starting up the application...")
-    logger.info(f" **** Metrics server will start at {settings.METRICS_HOST}:{settings.METRICS_PORT}")
+    logger.info(f" **** Metrics server will start at {settings.HOST}:{settings.METRICS_PORT}")
     
     yield
     

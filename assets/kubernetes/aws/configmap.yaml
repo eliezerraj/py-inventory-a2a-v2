@@ -28,7 +28,7 @@ data:
   AUTHORIZATION_CLIENT_ID_ASSERTION: "http://py-inventory-a2a-v2.architecture.xpto.io/oauth/client-metadata.json"
   AUTHORIZATION_URL_ASSERTION: "https://go-authorizer-v2.architecture.xpto.io"
   CURRENT_KID: "go-inventory-a2a-key-2026-10-26"
-  MCP_PROTECTED_RESOURCE: "http://py-inventory-a2a-v2.architecture.xpto.io"
+  A2A_PROTECTED_RESOURCE: "http://py-inventory-a2a-v2.architecture.xpto.io"
 
   MCP_SERVER_INVENTORY_URL: "https://py-mcp-inventory-v2.architecture.xpto.io/mcp"
   MCP_SERVER_ORDER_URL: "https://py-mcp-order-v2.architecture.xpto.io/mcp"
